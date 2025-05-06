@@ -4,6 +4,12 @@ This document contains a structured list of prompts and implementation steps for
 
 ---
 
+Additionaal prompts for every Step below:
+- Just dot he things mentioned in the steps. dont do something that i didnt mentioned - Just do the things mentioned in the steps and make them work.
+- when you write code make it as easy and as readable as possible.
+
+---
+
 ## ✅ 1. Project Setup: Create Flutter App & Add Dependencies
 
 ```
