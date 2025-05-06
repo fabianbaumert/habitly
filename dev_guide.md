@@ -10,7 +10,7 @@ Additional prompts for every Step below:
 
 ---
 
-## ✅ 1. Project Setup: Create Flutter App & Add Dependencies
+## DONE ✅ 1. Project Setup: Create Flutter App & Add Dependencies
 
 ```
 Create a new Flutter project named `habitly` using null safety. Add the following dependencies to `pubspec.yaml`:
