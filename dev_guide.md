@@ -43,7 +43,7 @@ Use Riverpod to manage the auth state and redirect users to the home screen afte
 
 ---
 
-## ✅ 4. Drawer Navigation with Main Screens
+## DONE ✅ 4. Drawer Navigation with Main Screens
 
 ```
 Implement a drawer-based navigation layout with the following pages:
