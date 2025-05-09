@@ -4,9 +4,9 @@ This document contains a structured list of prompts and implementation steps for
 
 ---
 
-Additional prompts for every Step below:
+Keep this in mind for every Step:
 - Just do the things mentioned in the steps. dont do something that i didnt mentioned - Just do the things mentioned in the steps and make them work.
-- when you write code make it as easy and as readable as possible.
+- when you write code make it as simple, easy and readable as possible.
 
 ---
 
@@ -24,7 +24,7 @@ Also initialize Hive and Firebase properly in the `main.dart` file.
 
 ---
 
-## ✅ 2. Firebase Initialization
+## DONE ✅ 2. Firebase Initialization
 
 ```
 Initialize Firebase in the main.dart file. Ensure FirebaseAuth, Firestore, and Firebase Cloud Messaging are ready to use. Also initialize Hive and register adapters if needed.
