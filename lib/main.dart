@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
+import 'package:habitly/providers/auth_provider.dart';
+import 'package:habitly/screens/auth/login_screen.dart';
+import 'package:habitly/screens/home_screen.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -42,15 +45,33 @@ void main() async {
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    
+    return MaterialApp(
+      title: 'Habitly',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: authState.when(
+        data: (user) {
+          // If user is authenticated, show home screen, otherwise show login
+          return user != null ? const HomeScreen() : const LoginScreen();
+        },
+        loading: () => const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+        error: (error, stackTrace) => Scaffold(
+          body: Center(
+            child: Text('Error: $error'),
+          ),
         ),
       ),
     );

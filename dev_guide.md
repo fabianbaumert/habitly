@@ -32,13 +32,12 @@ Initialize Firebase in the main.dart file. Ensure FirebaseAuth, Firestore, and F
 
 ---
 
-## ✅ 3. Firebase Authentication (Email, Google, Apple)
+## DONE ✅ 3. Firebase Authentication (Email)
 
 ```
 Create a user authentication system using FirebaseAuth with the following options:
 - Email/password login and registration
-- Google Sign-In
-- Apple Sign-In (only if running on iOS)
+- NO google or apple sign in
 Use Riverpod to manage the auth state and redirect users to the home screen after successful login.
 ```
 
