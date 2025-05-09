@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
+import 'package:habitly/providers/navigation_provider.dart';
+import 'package:habitly/widgets/app_drawer.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -8,7 +10,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authService = ref.watch(authServiceProvider);
-    // This is a placeholder home screen - we'll improve this in Step 4
+    // Set the current screen in navigation provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.home);
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Habitly'),
@@ -22,6 +28,7 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
+      drawer: const AppDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -46,6 +53,17 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Habit creation will be implemented in Step 6'),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+        tooltip: 'Add New Habit',
       ),
     );
   }

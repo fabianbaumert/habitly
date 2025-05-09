@@ -53,6 +53,7 @@ class MainApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Habitly',
       theme: ThemeData(
         primarySwatch: Colors.blue,
