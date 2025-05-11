@@ -5,6 +5,11 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/screens/habit_form_screen.dart';
 import 'package:intl/intl.dart';
 
+// Create a provider for the current habit being viewed
+final currentHabitProvider = Provider<Habit>((ref) {
+  throw UnimplementedError('Provider was not overridden');
+});
+
 class HabitDetailScreen extends ConsumerWidget {
   final Habit habit;
 
@@ -15,20 +20,37 @@ class HabitDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the habits provider to get real-time updates
+    final habitsAsync = ref.watch(habitsProvider);
+    
+    // Find the current habit in the updated list to get the latest state
+    final currentHabit = habitsAsync.when(
+      data: (habits) {
+        // Find the habit with the matching ID
+        final updatedHabit = habits.firstWhere(
+          (h) => h.id == habit.id,
+          orElse: () => habit, // Fallback to original if not found
+        );
+        return updatedHabit;
+      },
+      loading: () => habit, // Use original while loading
+      error: (_, __) => habit, // Use original in case of error
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(habit.name),
+        title: Text(currentHabit.name),
         actions: [
           // Edit button
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => _editHabit(context),
+            onPressed: () => _editHabit(context, currentHabit),
             tooltip: 'Edit habit',
           ),
           // Delete button
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => _deleteHabit(context, ref),
+            onPressed: () => _deleteHabit(context, ref, currentHabit),
             tooltip: 'Delete habit',
           ),
         ],
@@ -39,19 +61,19 @@ class HabitDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Habit Overview Section
-            _buildOverviewSection(context, ref),
+            _buildOverviewSection(context, ref, currentHabit),
             
             const SizedBox(height: 24),
             const Divider(),
             
             // Progress History Section
-            _buildProgressHistorySection(context),
+            _buildProgressHistorySection(context, currentHabit),
             
             const SizedBox(height: 24),
             const Divider(),
             
             // Calendar Section
-            _buildCalendarSection(context),
+            _buildCalendarSection(context, currentHabit),
           ],
         ),
       ),
@@ -59,7 +81,7 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 
   // Habit Overview Section
-  Widget _buildOverviewSection(BuildContext context, WidgetRef ref) {
+  Widget _buildOverviewSection(BuildContext context, WidgetRef ref, Habit currentHabit) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -73,37 +95,44 @@ class HabitDetailScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             
-            // Status indicator
+            // Status indicator - Modified to remove "Status:" label and keep button in same line
             Row(
               children: [
                 Icon(
-                  habit.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: habit.isDone ? Colors.green : Colors.grey,
+                  currentHabit.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: currentHabit.isDone ? Colors.green : Colors.grey,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Status: ${habit.isDone ? "Completed" : "Not completed"} today',
-                  style: TextStyle(
-                    color: habit.isDone ? Colors.green : Colors.grey[700],
-                    fontWeight: FontWeight.w500,
+                // Status text without "Status:" prefix
+                Expanded(
+                  child: Text(
+                    currentHabit.isDone ? "Completed today" : "Not completed today",
+                    style: TextStyle(
+                      color: currentHabit.isDone ? Colors.green : Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                // Toggle completion button
+                // Toggle completion button - back in the same row
                 TextButton.icon(
                   icon: Icon(
-                    habit.isDone ? Icons.undo : Icons.check,
-                    color: habit.isDone ? Colors.orange : Colors.green,
+                    currentHabit.isDone ? Icons.undo : Icons.check,
+                    color: currentHabit.isDone ? Colors.orange : Colors.green,
+                    size: 20, // Slightly smaller icon to help fit
                   ),
                   label: Text(
-                    habit.isDone ? 'Undo' : 'Complete',
+                    currentHabit.isDone ? 'Undo' : 'Complete',
                     style: TextStyle(
-                      color: habit.isDone ? Colors.orange : Colors.green,
+                      color: currentHabit.isDone ? Colors.orange : Colors.green,
+                      fontSize: 14, // Slightly smaller text to help fit
                     ),
                   ),
                   onPressed: () {
-                    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                    ref.read(habitsProvider.notifier).toggleHabitCompletion(currentHabit);
                   },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Smaller padding
+                  ),
                 ),
               ],
             ),
@@ -111,14 +140,16 @@ class HabitDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             
             // Daily goal
-            if (habit.dailyGoal != null && habit.dailyGoal!.isNotEmpty)
+            if (currentHabit.dailyGoal != null && currentHabit.dailyGoal!.isNotEmpty)
               Row(
                 children: [
                   const Icon(Icons.flag, color: Colors.blue),
                   const SizedBox(width: 8),
-                  Text(
-                    'Daily Goal: ${habit.dailyGoal}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  Expanded(
+                    child: Text(
+                      'Daily Goal: ${currentHabit.dailyGoal}',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ],
               ),
@@ -126,13 +157,13 @@ class HabitDetailScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             
             // Reminder time
-            if (habit.reminderTime != null)
+            if (currentHabit.reminderTime != null)
               Row(
                 children: [
                   const Icon(Icons.notifications_active, color: Colors.orange),
                   const SizedBox(width: 8),
                   Text(
-                    'Reminder: ${habit.reminderTime!.format(context)}',
+                    'Reminder: ${currentHabit.reminderTime!.format(context)}',
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
@@ -146,7 +177,7 @@ class HabitDetailScreen extends ConsumerWidget {
                 const Icon(Icons.calendar_today, color: Colors.grey),
                 const SizedBox(width: 8),
                 Text(
-                  'Started: ${DateFormat.yMMMd().format(habit.createdAt)}',
+                  'Started: ${DateFormat.yMMMd().format(currentHabit.createdAt)}',
                   style: const TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
@@ -161,11 +192,11 @@ class HabitDetailScreen extends ConsumerWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
-                value: habit.isDone ? 1.0 : 0.0,
+                value: currentHabit.isDone ? 1.0 : 0.0,
                 minHeight: 10,
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  habit.isDone ? Colors.green : Theme.of(context).primaryColor,
+                  currentHabit.isDone ? Colors.green : Theme.of(context).primaryColor,
                 ),
               ),
             ),
@@ -176,7 +207,7 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 
   // Progress History Section - Shows weekly/daily overview
-  Widget _buildProgressHistorySection(BuildContext context) {
+  Widget _buildProgressHistorySection(BuildContext context, Habit currentHabit) {
     // Get the current date and the days of the week
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -189,7 +220,7 @@ class HabitDetailScreen extends ConsumerWidget {
     // In a real implementation, we'd fetch the habit completion history
     // Since we don't have habit history tracking yet, we'll just show
     // the current completion status if it's today, otherwise no historical data
-    final isCompletedToday = habit.isDone;
+    final isCompletedToday = currentHabit.isDone;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +289,7 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 
   // Calendar Section - Shows a small calendar with completed days
-  Widget _buildCalendarSection(BuildContext context) {
+  Widget _buildCalendarSection(BuildContext context, Habit currentHabit) {
     // Get current month days
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -269,7 +300,7 @@ class HabitDetailScreen extends ConsumerWidget {
     // In a real implementation, we'd fetch the habit completion history
     // Since we don't have habit history tracking yet, we'll just show
     // the current completion status if it's today
-    final isCompletedToday = habit.isDone;
+    final isCompletedToday = currentHabit.isDone;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,22 +430,22 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 
   // Edit habit method
-  void _editHabit(BuildContext context) {
+  void _editHabit(BuildContext context, Habit currentHabit) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => HabitFormScreen(existingHabit: habit),
+        builder: (context) => HabitFormScreen(existingHabit: currentHabit),
       ),
     );
   }
 
   // Delete habit method with confirmation dialog
-  void _deleteHabit(BuildContext context, WidgetRef ref) {
+  void _deleteHabit(BuildContext context, WidgetRef ref, Habit currentHabit) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Habit'),
-        content: Text('Are you sure you want to delete "${habit.name}"?'),
+        content: Text('Are you sure you want to delete "${currentHabit.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -423,7 +454,7 @@ class HabitDetailScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _confirmDelete(context, ref);
+              _confirmDelete(context, ref, currentHabit);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('DELETE'),
@@ -434,9 +465,9 @@ class HabitDetailScreen extends ConsumerWidget {
   }
 
   // Handle actual deletion after confirmation
-  void _confirmDelete(BuildContext context, WidgetRef ref) async {
+  void _confirmDelete(BuildContext context, WidgetRef ref, Habit currentHabit) async {
     try {
-      await ref.read(habitsProvider.notifier).deleteHabit(habit.id);
+      await ref.read(habitsProvider.notifier).deleteHabit(currentHabit.id);
       if (context.mounted) {
         Navigator.of(context).pop(); // Return to previous screen
         ScaffoldMessenger.of(context).showSnackBar(
