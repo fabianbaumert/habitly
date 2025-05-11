@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/calendar_screen.dart';
+import 'package:habitly/screens/debug_screen.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/screens/settings_screen.dart';
+import 'package:flutter/foundation.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -81,6 +83,22 @@ class AppDrawer extends ConsumerWidget {
               _navigateTo(context, const SettingsScreen());
             },
           ),
+          // Only show the Debug option in debug mode
+          if (kDebugMode)
+            ListTile(
+              leading: const Icon(Icons.bug_report),
+              title: const Text('Debug'),
+              subtitle: const Text('Developer Options'),
+              selected: currentScreen == NavigationScreen.debug,
+              onTap: () {
+                // No need to set the navigation state since this is a temporary screen
+                Navigator.pop(context); // Close drawer
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (context) => const DebugScreen())
+                );
+              },
+            ),
         ],
       ),
     );

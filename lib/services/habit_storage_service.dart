@@ -77,4 +77,22 @@ class HabitStorageService {
       await box.delete(key);
     }
   }
+  
+  // Reset the entire Hive database (useful for development/testing)
+  static Future<void> resetDatabase() async {
+    // Close and delete the habits box
+    if (Hive.isBoxOpen(_habitsBoxName)) {
+      final box = Hive.box<HiveHabit>(_habitsBoxName);
+      await box.clear();  // Clear all records
+      await box.close();  // Close the box
+    }
+    
+    // Delete the box from disk
+    await Hive.deleteBoxFromDisk(_habitsBoxName);
+    
+    // Reopen the box (empty now)
+    await Hive.openBox<HiveHabit>(_habitsBoxName);
+    
+    debugPrint('Hive database has been reset');
+  }
 }

@@ -5,6 +5,7 @@ enum NavigationScreen {
   calendar,
   feedback,
   settings,
+  debug,
 }
 
 class NavigationNotifier extends StateNotifier<NavigationScreen> {
