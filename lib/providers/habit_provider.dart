@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/habit.dart';
+import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 
 // Provider for the habit storage service
@@ -160,5 +163,67 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   Future<void> toggleHabitCompletion(Habit habit) async {
     final updatedHabit = habit.copyWith(isDone: !habit.isDone);
     await updateHabit(updatedHabit);
+    
+    try {
+      // Also record this change in the habit history for today's date
+      await recordHabitCompletion(habit.id, updatedHabit.isDone, DateTime.now());
+    } catch (e) {
+      debugPrint('Error recording habit completion: $e');
+      // Continue even if the history recording fails - at least the habit itself was updated
+    }
+  }
+  
+  // Mark habit as complete for a specific date (used from calendar)
+  Future<void> toggleHabitCompletionForDate(Habit habit, DateTime date) async {
+    try {
+      // Get the current completion status for this habit on this date
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+      
+      final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+      
+      // Create a map with the toggled completion status
+      final Map<String, bool> update = {habit.id: true};  // Default to marking as complete
+      
+      // Check if we need to toggle it off instead (if it's already completed)
+      try {
+        final docRef = FirebaseFirestore.instance
+            .collection('habitHistory')
+            .doc(user.uid)
+            .collection('dates')
+            .doc(dateString);
+            
+        final snapshot = await docRef.get();
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          final currentStatus = data[habit.id] as bool? ?? false;
+          update[habit.id] = !currentStatus;
+        }
+      } catch (e) {
+        // If there's an error checking status, continue with default (marking as complete)
+        debugPrint('Error checking habit status: $e');
+      }
+      
+      // Update the habit completion status directly with a single write operation
+      await FirebaseFirestore.instance
+          .collection('habitHistory')
+          .doc(user.uid)
+          .collection('dates')
+          .doc(dateString)
+          .set(update, SetOptions(merge: true));
+      
+      // If the date is today, also update the habit's isDone state
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final selectedDate = DateTime(date.year, date.month, date.day);
+      
+      if (selectedDate.isAtSameMomentAs(today)) {
+        await updateHabit(habit.copyWith(isDone: update[habit.id]!));
+      }
+    } catch (e) {
+      debugPrint('Error toggling habit completion for date: $e');
+      // Re-throw as a more specific error that can be handled by the UI
+      throw Exception('Could not update habit completion. Please try again later.');
+    }
   }
 }

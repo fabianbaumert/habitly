@@ -104,7 +104,7 @@ Create a detail view for each habit showing:
 
 ---
 
-## ✅ 9. Calendar View
+## DONE ✅ 9. Calendar View
 
 ```
 Implement a calendar screen that visually shows daily progress for all habits.
