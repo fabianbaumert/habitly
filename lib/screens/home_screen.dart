@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
+import 'package:habitly/screens/habit_detail_screen.dart';
 import 'package:habitly/screens/habit_form_screen.dart';
 import 'package:habitly/widgets/app_drawer.dart';
 import 'package:habitly/widgets/habit_card.dart';
@@ -112,8 +113,13 @@ class HomeScreen extends ConsumerWidget {
                     final habit = habits[index];
                     return InkWell(
                       onTap: () {
-                        // Navigate to habit detail view when tapped
-                        // (This will be implemented in Step 8)
+                        // Navigate to habit detail screen when tapped
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HabitDetailScreen(habit: habit),
+                          ),
+                        );
                       },
                       child: HabitCard(habit: habit),
                     );

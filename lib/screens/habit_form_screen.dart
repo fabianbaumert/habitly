@@ -6,7 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitly/models/habit.dart';
 
 class HabitFormScreen extends ConsumerStatefulWidget {
-  const HabitFormScreen({Key? key}) : super(key: key);
+  final Habit? existingHabit;
+  
+  const HabitFormScreen({
+    Key? key, 
+    this.existingHabit,
+  }) : super(key: key);
 
   @override
   ConsumerState<HabitFormScreen> createState() => _HabitFormScreenState();
@@ -20,12 +25,21 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
 
   bool _isLoading = false;
   String _testMessage = '';
+  bool get _isEditMode => widget.existingHabit != null;
 
   @override
   void initState() {
     super.initState();
-    // Test Firebase connection on screen load
-    _testFirebaseConnection();
+    
+    // If editing, populate form with existing habit data
+    if (_isEditMode) {
+      _nameController.text = widget.existingHabit!.name;
+      _dailyGoalController.text = widget.existingHabit!.dailyGoal ?? '';
+      _reminderTime = widget.existingHabit!.reminderTime;
+    } else {
+      // Only test Firebase connection in create mode
+      _testFirebaseConnection();
+    }
   }
 
   // Test Firebase connection
@@ -94,37 +108,59 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     });
 
     try {
-      // Create a new habit instance
+      // Get the current user
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         throw Exception('User not authenticated');
       }
       
-      final habit = Habit(
-        id: FirebaseFirestore.instance.collection('habits').doc().id,
-        name: _nameController.text.trim(),
-        dailyGoal: _dailyGoalController.text.trim().isNotEmpty
-            ? _dailyGoalController.text.trim()
-            : null,
-        reminderTime: _reminderTime,
-        isDone: false,
-        createdAt: DateTime.now(),
-        userId: user.uid,
-      );
-
-      // Add the habit using the provider
-      await ref.read(habitsProvider.notifier).addHabit(habit);
-
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Habit created successfully')),
+      if (_isEditMode) {
+        // Update existing habit
+        final updatedHabit = widget.existingHabit!.copyWith(
+          name: _nameController.text.trim(),
+          dailyGoal: _dailyGoalController.text.trim().isNotEmpty
+              ? _dailyGoalController.text.trim()
+              : null,
+          reminderTime: _reminderTime,
         );
+        
+        // Update habit through provider
+        await ref.read(habitsProvider.notifier).updateHabit(updatedHabit);
+        
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Habit updated successfully')),
+          );
+        }
+      } else {
+        // Create a new habit
+        final newHabit = Habit(
+          id: FirebaseFirestore.instance.collection('habits').doc().id,
+          name: _nameController.text.trim(),
+          dailyGoal: _dailyGoalController.text.trim().isNotEmpty
+              ? _dailyGoalController.text.trim()
+              : null,
+          reminderTime: _reminderTime,
+          isDone: false,
+          createdAt: DateTime.now(),
+          userId: user.uid,
+        );
+
+        // Add the habit using the provider
+        await ref.read(habitsProvider.notifier).addHabit(newHabit);
+
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Habit created successfully')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating habit: $e')),
+          SnackBar(content: Text('Error ${_isEditMode ? 'updating' : 'creating'} habit: $e')),
         );
       }
     } finally {
@@ -140,7 +176,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Habit'),
+        title: Text(_isEditMode ? 'Edit Habit' : 'New Habit'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -148,8 +184,8 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              // Firebase connection test message
-              if (_testMessage.isNotEmpty)
+              // Firebase connection test message (only in create mode)
+              if (!_isEditMode && _testMessage.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Text(
@@ -212,7 +248,10 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator()
-                    : const Text('Save Habit', style: TextStyle(fontSize: 16)),
+                    : Text(
+                        _isEditMode ? 'Update Habit' : 'Save Habit', 
+                        style: const TextStyle(fontSize: 16)
+                      ),
               ),
             ],
           ),
