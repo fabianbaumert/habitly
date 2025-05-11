@@ -10,6 +10,8 @@ import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/theme_provider.dart';
 import 'package:habitly/screens/auth/login_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
+import 'package:habitly/models/hive_habit.dart';
+import 'package:habitly/services/habit_storage_service.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -31,15 +33,20 @@ void main() async {
     badge: true,
     sound: true,
   );
-
+  
   // Initialize Hive for local storage
   await Hive.initFlutter();
   
   // Open preference box for app settings
   await Hive.openBox('preferences');
   
-  // TODO: Register Hive adapters here when creating data models
-  // Example: Hive.registerAdapter(HabitAdapter());
+  // Register Hive adapters
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(TimeOfDayAdapter());
+  }
+  
+  // Initialize habit storage service
+  await HabitStorageService.init();
 
   runApp(
     // Wrap app with ProviderScope for Riverpod

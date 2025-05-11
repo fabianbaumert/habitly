@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
+import 'package:habitly/screens/habit_form_screen.dart';
 import 'package:habitly/widgets/app_drawer.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -42,10 +43,10 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                // This will be implemented in Step 6
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Habit creation will be implemented in Step 6'),
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(
+                    builder: (context) => const HabitFormScreen(),
                   ),
                 );
               },
@@ -56,9 +57,10 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Habit creation will be implemented in Step 6'),
+          Navigator.push(
+            context, 
+            MaterialPageRoute(
+              builder: (context) => const HabitFormScreen(),
             ),
           );
         },

@@ -30,7 +30,7 @@ class Habit {
       'reminderTime': reminderTime != null ? 
         '${reminderTime!.hour}:${reminderTime!.minute}' : null,
       'isDone': isDone,
-      'createdAt': createdAt,
+      'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
     };
   }

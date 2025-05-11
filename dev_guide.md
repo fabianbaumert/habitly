@@ -56,7 +56,7 @@ Use Flutter's Drawer widget and maintain state via Riverpod.
 
 ---
 
-## ✅ 5. Global State Management (Riverpod)
+## ✅ DONE 5. Global State Management (Riverpod)
 
 ```
 Create Riverpod providers for the following:
@@ -68,7 +68,7 @@ Create Riverpod providers for the following:
 
 ---
 
-## ✅ 6. Habit Creation and Management
+## DONE ✅ 6. Habit Creation and Management
 
 ```
 Create a UI screen for users to add a new habit with:
