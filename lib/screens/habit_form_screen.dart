@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:habitly/models/habit.dart';
 
 class HabitFormScreen extends ConsumerStatefulWidget {
   const HabitFormScreen({Key? key}) : super(key: key);
@@ -92,14 +94,26 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     });
 
     try {
+      // Create a new habit instance
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+      
+      final habit = Habit(
+        id: FirebaseFirestore.instance.collection('habits').doc().id,
+        name: _nameController.text.trim(),
+        dailyGoal: _dailyGoalController.text.trim().isNotEmpty
+            ? _dailyGoalController.text.trim()
+            : null,
+        reminderTime: _reminderTime,
+        isDone: false,
+        createdAt: DateTime.now(),
+        userId: user.uid,
+      );
+
       // Add the habit using the provider
-      await ref.read(habitProvider.notifier).addHabit(
-            _nameController.text.trim(),
-            dailyGoal: _dailyGoalController.text.trim().isNotEmpty
-                ? _dailyGoalController.text.trim()
-                : null,
-            reminderTime: _reminderTime,
-          );
+      await ref.read(habitsProvider.notifier).addHabit(habit);
 
       if (mounted) {
         Navigator.of(context).pop();

@@ -80,7 +80,7 @@ Store the data locally in Hive and sync to Firestore.
 
 ---
 
-## ✅ 7. Home Screen with Habit Overview
+## DONE ✅ 7. Home Screen with Habit Overview
 
 ```
 Build a home screen that displays a list of current habits.
