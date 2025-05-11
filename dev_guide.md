@@ -93,7 +93,7 @@ Retrieve data using Riverpod and sync changes with Firebase + Hive.
 
 ---
 
-## ✅ 8. Habit Detail & Progress View
+## DONE ✅ 8. Habit Detail & Progress View
 
 ```
 Create a detail view for each habit showing:
