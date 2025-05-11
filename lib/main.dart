@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'package:habitly/providers/auth_provider.dart';
+import 'package:habitly/providers/theme_provider.dart';
 import 'package:habitly/screens/auth/login_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
 
@@ -34,6 +35,9 @@ void main() async {
   // Initialize Hive for local storage
   await Hive.initFlutter();
   
+  // Open preference box for app settings
+  await Hive.openBox('preferences');
+  
   // TODO: Register Hive adapters here when creating data models
   // Example: Hive.registerAdapter(HabitAdapter());
 
@@ -51,14 +55,14 @@ class MainApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
+    // Get the current theme from the theme provider
+    final appTheme = ref.watch(appThemeProvider);
     
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Habitly',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      // Use the theme from the provider
+      theme: appTheme,
       home: authState.when(
         data: (user) {
           // If user is authenticated, show home screen, otherwise show login
