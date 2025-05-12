@@ -12,19 +12,26 @@ import 'package:habitly/screens/auth/login_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/models/hive_habit.dart';
 import 'package:habitly/services/habit_storage_service.dart';
+import 'package:habitly/services/logger_service.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize logger
+  final logger = appLogger;
+  logger.i('Initializing application...');
+
   // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  logger.i('Firebase initialized');
 
   // Initialize Firebase services - just accessing the instances ensures they're initialized
   FirebaseAuth.instance;
   FirebaseFirestore.instance;
+  logger.i('Firebase services initialized');
   
   // Initialize Firebase Messaging and request permissions
   final messaging = FirebaseMessaging.instance;
@@ -33,9 +40,11 @@ void main() async {
     badge: true,
     sound: true,
   );
+  logger.i('Firebase Messaging initialized');
   
   // Initialize Hive for local storage
   await Hive.initFlutter();
+  logger.i('Hive initialized');
   
   // Open preference box for app settings
   await Hive.openBox('preferences');
@@ -47,6 +56,8 @@ void main() async {
   
   // Initialize habit storage service
   await HabitStorageService.init();
+  logger.i('Habit storage service initialized');
+  logger.i('App initialization complete');
 
   runApp(
     // Wrap app with ProviderScope for Riverpod

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/services/habit_storage_service.dart';
+import 'package:habitly/services/logger_service.dart';
 
 // Provider for the habit storage service
 final habitStorageServiceProvider = Provider<HabitStorageService>((ref) {
@@ -15,7 +16,6 @@ final habitStorageServiceProvider = Provider<HabitStorageService>((ref) {
 // Provider to stream habits from Firestore
 final firestoreHabitsProvider = StreamProvider<List<Habit>>((ref) {
   final user = FirebaseAuth.instance.currentUser;
-  
   if (user == null) {
     return Stream.value([]);
   }
@@ -24,15 +24,16 @@ final firestoreHabitsProvider = StreamProvider<List<Habit>>((ref) {
     .collection('habits')
     .where('userId', isEqualTo: user.uid)
     .snapshots()
-    .map((snapshot) => 
-        snapshot.docs.map((doc) => Habit.fromFirestore(doc)).toList());
+    .map((snapshot) {
+      final habits = snapshot.docs.map((doc) => Habit.fromFirestore(doc)).toList();
+      return habits;
+    });
 });
 
 // Provider to get habits from local storage
 final localHabitsProvider = FutureProvider<List<Habit>>((ref) async {
   final user = FirebaseAuth.instance.currentUser;
   final habitStorage = ref.watch(habitStorageServiceProvider);
-  
   if (user == null) {
     return [];
   }
@@ -53,18 +54,19 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   HabitsNotifier(this._habitStorage, this._ref) : super(const AsyncValue.loading()) {
     _init();
   }
-  
+
   Future<void> _init() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       state = const AsyncValue.data([]);
       return;
     }
-
+    
     // Start with local data
     try {
       final localHabits = await _habitStorage.getHabits(user.uid);
       state = AsyncValue.data(localHabits);
+      appLogger.i('Loaded ${localHabits.length} habits from local storage');
       
       // Listen to Firestore updates
       _ref.listen(firestoreHabitsProvider, (previous, next) {
@@ -76,23 +78,28 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         });
       });
     } catch (e) {
+      appLogger.e('Error initializing habits: $e');
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-  
+
   // Sync Firestore habits to local storage
   Future<void> _syncWithFirestore(List<Habit> firestoreHabits) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    
-    // Update local storage with Firestore data
-    await _habitStorage.saveHabits(firestoreHabits);
-    
-    // Update state with the latest data
-    final updatedHabits = await _habitStorage.getHabits(user.uid);
-    state = AsyncValue.data(updatedHabits);
+
+    try {
+      // Update local storage with Firestore data
+      await _habitStorage.saveHabits(firestoreHabits);
+      
+      // Update state with the latest data
+      final updatedHabits = await _habitStorage.getHabits(user.uid);
+      state = AsyncValue.data(updatedHabits);
+    } catch (e) {
+      appLogger.e('Error syncing with Firestore: $e');
+    }
   }
-  
+
   // Add a new habit
   Future<void> addHabit(Habit habit) async {
     try {
@@ -109,11 +116,14 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           .collection('habits')
           .doc(habit.id)
           .set(habit.toMap());
+          
+      appLogger.i('Added habit: ${habit.name} (${habit.id})');
     } catch (e) {
+      appLogger.e('Error adding habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-  
+
   // Update a habit
   Future<void> updateHabit(Habit habit) async {
     try {
@@ -122,7 +132,7 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       
       // Update state
       state.whenData((habits) {
-        final updatedHabits = habits.map((h) => 
+        final updatedHabits = habits.map((h) =>
           h.id == habit.id ? habit : h).toList();
         state = AsyncValue.data(updatedHabits);
       });
@@ -132,11 +142,14 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           .collection('habits')
           .doc(habit.id)
           .update(habit.toMap());
+          
+      appLogger.i('Updated habit: ${habit.name} (${habit.id})');
     } catch (e) {
+      appLogger.e('Error updating habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-  
+
   // Delete a habit
   Future<void> deleteHabit(String habitId) async {
     try {
@@ -154,55 +167,55 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           .collection('habits')
           .doc(habitId)
           .delete();
+          
+      appLogger.i('Deleted habit: $habitId');
     } catch (e) {
+      appLogger.e('Error deleting habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-  
+
   // Toggle the isDone state of a habit
   Future<void> toggleHabitCompletion(Habit habit) async {
-    final updatedHabit = habit.copyWith(isDone: !habit.isDone);
-    await updateHabit(updatedHabit);
-    
     try {
+      final updatedHabit = habit.copyWith(isDone: !habit.isDone);
+      await updateHabit(updatedHabit);
+      
       // Also record this change in the habit history for today's date
       await recordHabitCompletion(habit.id, updatedHabit.isDone, DateTime.now());
     } catch (e) {
-      debugPrint('Error recording habit completion: $e');
-      // Continue even if the history recording fails - at least the habit itself was updated
+      appLogger.e('Error toggling habit completion: $e');
     }
   }
-  
+
   // Mark habit as complete for a specific date (used from calendar)
   Future<void> toggleHabitCompletionForDate(Habit habit, DateTime date) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     try {
-      // Get the current completion status for this habit on this date
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-      
       final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
       
-      // Create a map with the toggled completion status
-      final Map<String, bool> update = {habit.id: true};  // Default to marking as complete
-      
-      // Check if we need to toggle it off instead (if it's already completed)
+      // Get the current status first
+      Map<String, bool> currentStatus = {};
       try {
-        final docRef = FirebaseFirestore.instance
+        final docSnapshot = await FirebaseFirestore.instance
             .collection('habitHistory')
             .doc(user.uid)
             .collection('dates')
-            .doc(dateString);
+            .doc(dateString)
+            .get();
             
-        final snapshot = await docRef.get();
-        if (snapshot.exists && snapshot.data() != null) {
-          final data = snapshot.data() as Map<String, dynamic>;
-          final currentStatus = data[habit.id] as bool? ?? false;
-          update[habit.id] = !currentStatus;
+        if (docSnapshot.exists) {
+          currentStatus = Map<String, bool>.from(docSnapshot.data() ?? {});
         }
       } catch (e) {
-        // If there's an error checking status, continue with default (marking as complete)
-        debugPrint('Error checking habit status: $e');
+        appLogger.w('Error checking habit status: $e');
       }
+      
+      // Toggle the current status (or default to true if not set)
+      final newStatus = !(currentStatus[habit.id] ?? false);
+      final update = {habit.id: newStatus};
       
       // Update the habit completion status directly with a single write operation
       await FirebaseFirestore.instance
@@ -211,6 +224,8 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           .collection('dates')
           .doc(dateString)
           .set(update, SetOptions(merge: true));
+          
+      appLogger.i('Set habit ${habit.name} to ${newStatus ? "completed" : "uncompleted"} for $dateString');
       
       // If the date is today, also update the habit's isDone state
       final now = DateTime.now();
@@ -221,8 +236,7 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         await updateHabit(habit.copyWith(isDone: update[habit.id]!));
       }
     } catch (e) {
-      debugPrint('Error toggling habit completion for date: $e');
-      // Re-throw as a more specific error that can be handled by the UI
+      appLogger.e('Error toggling habit completion for date: $e');
       throw Exception('Could not update habit completion. Please try again later.');
     }
   }
