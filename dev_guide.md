@@ -118,7 +118,7 @@ Use a third-party calendar package or build a custom calendar grid.
 
 ```
 Create a feedback form screen with a multi-line text field.
-When submitted, send the feedback using Dio to a mock API endpoint or directly to a Firebase Firestore collection named `feedback`.
+When submitted, send the feedback using Dio to a mock API endpoint;
 ```
 
 ---
@@ -167,6 +167,10 @@ Save the selected theme in Hive and manage it with Riverpod.
 Add a custom app icon and splash screen for both iOS and Android using flutter_native_splash and flutter_launcher_icons.
 Run flutter analyze and flutter test to check for issues.
 ```
+
+Additionaly:
+- user Logger for logging
+
 
 ---
 
