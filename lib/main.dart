@@ -12,6 +12,7 @@ import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/models/hive_habit.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
+import 'package:habitly/services/notification_service.dart'; // Add this import
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -47,6 +48,20 @@ void main() async {
   // Initialize habit storage service
   await HabitStorageService.init();
   logger.i('Habit storage service initialized');
+  
+  // Initialize notification service
+  await NotificationService().initialize();
+  logger.i('Notification service initialized');
+  
+  // Check if this is the first launch to request notification permissions
+  final prefsBox = Hive.box('preferences');
+  final bool hasRequestedNotificationPermissions = prefsBox.get('notificationPermissionsRequested', defaultValue: false);
+  
+  if (!hasRequestedNotificationPermissions) {
+    logger.i('First launch detected, will request notification permissions');
+    // Will request permissions when app loads in MainApp widget
+  }
+  
   logger.i('App initialization complete');
 
   runApp(
@@ -65,6 +80,19 @@ class MainApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     // Get the current theme from the theme provider
     final appTheme = ref.watch(appThemeProvider);
+    
+    // Request notification permissions on first launch
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefsBox = Hive.box('preferences');
+      final bool hasRequestedNotificationPermissions = prefsBox.get('notificationPermissionsRequested', defaultValue: false);
+      
+      if (!hasRequestedNotificationPermissions) {
+        appLogger.i('Requesting notification permissions on first launch');
+        final permissionsGranted = await NotificationService().requestPermissions();
+        await prefsBox.put('notificationPermissionsRequested', true);
+        appLogger.i('Notification permissions request complete: $permissionsGranted');
+      }
+    });
     
     return MaterialApp(
       debugShowCheckedModeBanner: false,

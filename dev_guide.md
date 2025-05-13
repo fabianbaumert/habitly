@@ -123,13 +123,16 @@ When submitted, send the feedback using Dio to a mock API endpoint;
 
 ---
 
-## ✅ 11. Push Notifications (flutter_local_storage)
+## ✅ 11. Push Notifications (flutter_local_notifications
 
 ```
-Enable push notifications with local notifications and the package flutter_local_storage.
+Enable push notifications with local notifications and the package flutter_local_notifications.
 Send daily reminders at the user-defined time for each habit.
 Ask for notification permissions on first app launch.
+dont do anything on the settings screen
 dont use firebase messaging.
+just implement the notification scheduling properly when creating/editing/deleting a habit - nothing more.
+add some simple logger logs on important parts for debugging purposes.
 ```
 
 ---
