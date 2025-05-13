@@ -114,7 +114,7 @@ Use a third-party calendar package or build a custom calendar grid.
 
 ---
 
-## ✅ 10. Feedback Form (with Dio)
+## ✅ DONE 10. Feedback Form (with Dio)
 
 ```
 Create a feedback form screen with a multi-line text field.
@@ -126,7 +126,7 @@ When submitted, send the feedback using Dio to a mock API endpoint;
 ## ✅ 11. Push Notifications (Firebase Cloud Messaging)
 
 ```
-Enable push notifications with Firebase Cloud Messaging.
+Enable push notifications with local notifications.
 Send daily reminders at the user-defined time for each habit.
 Ask for notification permissions on first app launch.
 ```
