@@ -12,9 +12,7 @@ class NotificationPreferenceNotifier extends StateNotifier<NotificationPreferenc
   // Initialize with default preferences
   NotificationPreferenceNotifier(this.ref) 
       : super(NotificationPreference(
-          enableNotifications: true, 
-          enableDailyReminders: true,
-          defaultReminderTime: const TimeOfDay(hour: 20, minute: 0), // 8:00 PM by default
+          enableNotifications: true,
         )) {
     _loadPreferences();
   }
@@ -92,18 +90,6 @@ class NotificationPreferenceNotifier extends StateNotifier<NotificationPreferenc
   // Update enable notifications setting
   Future<void> setEnableNotifications(bool enable) async {
     state = state.copyWith(enableNotifications: enable);
-    await _savePreferences();
-  }
-
-  // Update daily reminders setting
-  Future<void> setEnableDailyReminders(bool enable) async {
-    state = state.copyWith(enableDailyReminders: enable);
-    await _savePreferences();
-  }
-
-  // Update default reminder time
-  Future<void> setDefaultReminderTime(TimeOfDay time) async {
-    state = state.copyWith(defaultReminderTime: time);
     await _savePreferences();
   }
 }
