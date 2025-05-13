@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -32,15 +31,6 @@ void main() async {
   FirebaseAuth.instance;
   FirebaseFirestore.instance;
   logger.i('Firebase services initialized');
-  
-  // Initialize Firebase Messaging and request permissions
-  final messaging = FirebaseMessaging.instance;
-  await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  logger.i('Firebase Messaging initialized');
   
   // Initialize Hive for local storage
   await Hive.initFlutter();
