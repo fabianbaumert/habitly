@@ -6,16 +6,10 @@ import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
-import 'package:habitly/services/notification_service.dart';
 
 // Provider for the habit storage service
 final habitStorageServiceProvider = Provider<HabitStorageService>((ref) {
   return HabitStorageService();
-});
-
-// Provider for the notification service
-final notificationServiceProvider = Provider<NotificationService>((ref) {
-  return NotificationService();
 });
 
 // Provider to stream habits from Firestore
@@ -55,10 +49,8 @@ final habitsProvider = StateNotifierProvider<HabitsNotifier, AsyncValue<List<Hab
 class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   final HabitStorageService _habitStorage;
   final Ref _ref;
-  late final NotificationService _notificationService;
   
   HabitsNotifier(this._habitStorage, this._ref) : super(const AsyncValue.loading()) {
-    _notificationService = _ref.read(notificationServiceProvider);
     _init();
   }
 
@@ -75,9 +67,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       state = AsyncValue.data(localHabits);
       appLogger.i('Loaded ${localHabits.length} habits from local storage');
       
-      // Schedule notifications for habits with reminders
-      _scheduleAllHabitNotifications(localHabits);
-      
       // Listen to Firestore updates
       _ref.listen(firestoreHabitsProvider, (previous, next) {
         next.whenData((firestoreHabits) {
@@ -93,15 +82,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     }
   }
 
-  // Schedule notifications for all habits with reminder times
-  Future<void> _scheduleAllHabitNotifications(List<Habit> habits) async {
-    try {
-      await _notificationService.rescheduleAllHabitNotifications(habits);
-    } catch (e) {
-      appLogger.e('Error scheduling all habit notifications: $e');
-    }
-  }
-
   // Sync Firestore habits to local storage
   Future<void> _syncWithFirestore(List<Habit> firestoreHabits) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -114,9 +94,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       // Update state with the latest data
       final updatedHabits = await _habitStorage.getHabits(user.uid);
       state = AsyncValue.data(updatedHabits);
-      
-      // Reschedule notifications after sync
-      await _scheduleAllHabitNotifications(updatedHabits);
     } catch (e) {
       appLogger.e('Error syncing with Firestore: $e');
     }
@@ -132,13 +109,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       state.whenData((habits) {
         state = AsyncValue.data([...habits, habit]);
       });
-      
-      // Schedule notification if reminder time is set
-      if (habit.reminderTime != null) {
-        await _notificationService.scheduleHabitReminder(habit);
-        final timeStr = '${habit.reminderTime!.hour}:${habit.reminderTime!.minute.toString().padLeft(2, '0')}';
-        appLogger.i('Scheduled notification for new habit: ${habit.name} at $timeStr');
-      }
       
       // Sync with Firestore
       await FirebaseFirestore.instance
@@ -166,16 +136,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         state = AsyncValue.data(updatedHabits);
       });
       
-      // Update notification if reminder time exists
-      if (habit.reminderTime != null) {
-        await _notificationService.scheduleHabitReminder(habit);
-        appLogger.i('Updated notification for habit: ${habit.name}');
-      } else {
-        // Cancel notification if reminder time was removed
-        await _notificationService.cancelNotification(habit.id);
-        appLogger.i('Cancelled notification for habit: ${habit.name}');
-      }
-      
       // Sync with Firestore
       await FirebaseFirestore.instance
           .collection('habits')
@@ -192,10 +152,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   // Delete a habit
   Future<void> deleteHabit(String habitId) async {
     try {
-      // Cancel any notifications for this habit
-      await _notificationService.cancelNotification(habitId);
-      appLogger.i('Cancelled notification for deleted habit: $habitId');
-      
       // Delete from local storage first
       await _habitStorage.deleteHabit(habitId);
       

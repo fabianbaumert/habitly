@@ -156,21 +156,6 @@ class HabitDetailScreen extends ConsumerWidget {
             
             const SizedBox(height: 12),
             
-            // Reminder time
-            if (currentHabit.reminderTime != null)
-              Row(
-                children: [
-                  const Icon(Icons.notifications_active, color: Colors.orange),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Reminder: ${currentHabit.reminderTime!.format(context)}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            
-            const SizedBox(height: 12),
-            
             // Creation date
             Row(
               children: [

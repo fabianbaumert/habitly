@@ -74,7 +74,7 @@ Create Riverpod providers for the following:
 Create a UI screen for users to add a new habit with:
 - Custom habit name
 - Daily goal (optional)
-- Reminder time (TimeOfDay)
+
 Store the data locally in Hive and sync to Firestore.
 ```
 
@@ -123,11 +123,11 @@ When submitted, send the feedback using Dio to a mock API endpoint;
 
 ---
 
-## ✅ 11. Push Notifications (flutter_local_notifications
+## ✅ SKIP 11. Push Notifications (flutter_local_notifications
 
 ```
 Enable push notifications with local notifications and the package flutter_local_notifications.
-Send daily reminders at the user-defined time for each habit.
+
 Ask for notification permissions on first app launch.
 dont do anything on the settings screen
 dont use firebase messaging.
@@ -147,10 +147,10 @@ If there is a conflict between local and remote, use the most recent data automa
 
 ---
 
-## ✅ 13. Notification Preferences
+## ✅ SKIP 13. Notification Preferences
 
 ```
-Let users configure the frequency and time of reminders for each habit.
+
 Save this setting in Hive and Firestore, and use it to schedule notifications.
 ```
 

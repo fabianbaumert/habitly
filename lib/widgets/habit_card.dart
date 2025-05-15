@@ -82,24 +82,6 @@ class HabitCard extends ConsumerWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (habit.reminderTime != null)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.notifications_outlined, 
-                        size: 16,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${habit.reminderTime!.format(context)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ],

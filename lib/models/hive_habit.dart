@@ -1,27 +1,7 @@
 import 'package:hive/hive.dart';
-import 'package:flutter/material.dart';
 import 'package:habitly/models/habit.dart';
 
 part 'hive_habit.g.dart';
-
-// Define Hive type for TimeOfDay
-class TimeOfDayAdapter extends TypeAdapter<TimeOfDay> {
-  @override
-  final int typeId = 1;
-
-  @override
-  TimeOfDay read(BinaryReader reader) {
-    final hour = reader.readInt();
-    final minute = reader.readInt();
-    return TimeOfDay(hour: hour, minute: minute);
-  }
-
-  @override
-  void write(BinaryWriter writer, TimeOfDay obj) {
-    writer.writeInt(obj.hour);
-    writer.writeInt(obj.minute);
-  }
-}
 
 // Hive model for Habit
 @HiveType(typeId: 0)
@@ -34,9 +14,6 @@ class HiveHabit {
   
   @HiveField(2)
   final String? dailyGoal;
-  
-  @HiveField(3)
-  final TimeOfDay? reminderTime;
   
   @HiveField(4)
   final bool isDone;
@@ -51,7 +28,6 @@ class HiveHabit {
     required this.id,
     required this.name,
     this.dailyGoal,
-    this.reminderTime,
     this.isDone = false,
     required this.createdAt,
     required this.userId,
@@ -63,7 +39,6 @@ class HiveHabit {
       id: habit.id,
       name: habit.name,
       dailyGoal: habit.dailyGoal,
-      reminderTime: habit.reminderTime,
       isDone: habit.isDone,
       createdAt: habit.createdAt,
       userId: habit.userId,
@@ -76,7 +51,6 @@ class HiveHabit {
       id: id,
       name: name,
       dailyGoal: dailyGoal,
-      reminderTime: reminderTime,
       isDone: isDone,
       createdAt: createdAt,
       userId: userId,

@@ -1,6 +1,6 @@
 # 📱 Habitly – Habit Tracker App
 
-**Habitly** is a minimalistic and clean mobile app that helps users build and maintain positive habits. Built with Flutter for both **iOS** and **Android**, it provides features like habit tracking, daily reminders, progress overviews, and feedback submission – all powered by modern tools like Firebase, Riverpod, Hive and Dio.
+**Habitly** is a minimalistic and clean mobile app that helps users build and maintain positive habits. Built with Flutter for both **iOS** and **Android**, it provides features like habit tracking, progress overviews, and feedback submission – all powered by modern tools like Firebase, Riverpod, Hive and Dio.
 
 ---
 
@@ -8,7 +8,7 @@
 
 - ✅ Create and track custom habits
 - 📊 View daily/weekly/monthly progress
-- 🔔 Receive push reminders via Firebase Messaging
+
 - 📝 Submit feedback directly through the app
 - 🌐 Works offline with local sync using Hive
 - 🎯 Clean, minimal design with drawer navigation
@@ -23,7 +23,7 @@
 - **Riverpod** – State management
 - **Hive** – Lightweight local storage
 - **Dio** – HTTP client for feedback
-- **Flutter Local Notifications** – Reminder scheduling
+
 - **Flutter Launcher Icons** / **Splash** – App branding
 
 ---

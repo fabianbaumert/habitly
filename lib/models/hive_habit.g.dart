@@ -20,7 +20,6 @@ class HiveHabitAdapter extends TypeAdapter<HiveHabit> {
       id: fields[0] as String,
       name: fields[1] as String,
       dailyGoal: fields[2] as String?,
-      reminderTime: fields[3] as TimeOfDay?,
       isDone: fields[4] as bool,
       createdAt: fields[5] as DateTime,
       userId: fields[6] as String,
@@ -30,15 +29,13 @@ class HiveHabitAdapter extends TypeAdapter<HiveHabit> {
   @override
   void write(BinaryWriter writer, HiveHabit obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
       ..write(obj.dailyGoal)
-      ..writeByte(3)
-      ..write(obj.reminderTime)
       ..writeByte(4)
       ..write(obj.isDone)
       ..writeByte(5)

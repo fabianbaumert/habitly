@@ -1,7 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:habitly/models/habit.dart';
 import 'package:habitly/models/hive_habit.dart';
-import 'package:flutter/material.dart';
 import 'package:habitly/services/logger_service.dart';
 
 class HabitStorageService {
@@ -13,10 +12,6 @@ class HabitStorageService {
       // Register adapters
       if (!Hive.isAdapterRegistered(0)) {
         Hive.registerAdapter(HiveHabitAdapter());
-      }
-
-      if (!Hive.isAdapterRegistered(1)) {
-        Hive.registerAdapter(TimeOfDayAdapter());
       }
 
       // Open the habits box

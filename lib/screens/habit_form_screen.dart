@@ -21,7 +21,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _dailyGoalController = TextEditingController();
-  TimeOfDay? _reminderTime;
 
   bool _isLoading = false;
   String _testMessage = '';
@@ -35,7 +34,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     if (_isEditMode) {
       _nameController.text = widget.existingHabit!.name;
       _dailyGoalController.text = widget.existingHabit!.dailyGoal ?? '';
-      _reminderTime = widget.existingHabit!.reminderTime;
     } else {
       // Only test Firebase connection in create mode
       _testFirebaseConnection();
@@ -75,28 +73,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     super.dispose();
   }
 
-  // Format time to a readable string
-  String _formatTimeOfDay(TimeOfDay timeOfDay) {
-    final hour = timeOfDay.hourOfPeriod;
-    final minute = timeOfDay.minute.toString().padLeft(2, '0');
-    final period = timeOfDay.period == DayPeriod.am ? 'AM' : 'PM';
-    return '$hour:$minute $period';
-  }
-
-  // Show time picker dialog
-  Future<void> _selectTime() async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: _reminderTime ?? TimeOfDay.now(),
-    );
-
-    if (pickedTime != null && pickedTime != _reminderTime) {
-      setState(() {
-        _reminderTime = pickedTime;
-      });
-    }
-  }
-
   // Save the habit
   Future<void> _saveHabit() async {
     if (!_formKey.currentState!.validate()) {
@@ -121,7 +97,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           dailyGoal: _dailyGoalController.text.trim().isNotEmpty
               ? _dailyGoalController.text.trim()
               : null,
-          reminderTime: _reminderTime,
         );
         
         // Update habit through provider
@@ -141,7 +116,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           dailyGoal: _dailyGoalController.text.trim().isNotEmpty
               ? _dailyGoalController.text.trim()
               : null,
-          reminderTime: _reminderTime,
           isDone: false,
           createdAt: DateTime.now(),
           userId: user.uid,
@@ -223,20 +197,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
                   hintText: 'e.g., 8 glasses, 30 minutes, 10 pages',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Reminder Time
-              ListTile(
-                title: const Text('Reminder Time (Optional)'),
-                subtitle: Text(_reminderTime != null 
-                    ? 'Set for ${_formatTimeOfDay(_reminderTime!)}'
-                    : 'No reminder set'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.alarm),
-                  onPressed: _selectTime,
-                ),
-                onTap: _selectTime,
               ),
               const SizedBox(height: 32),
               
