@@ -137,7 +137,7 @@ add some simple logger logs on important parts for debugging purposes.
 
 ---
 
-## ✅ 12. Offline Support and Auto Sync
+## ✅DONE 12. Offline Support and Auto Sync
 
 ```
 Store all habit and habitHistory data locally with Hive.
@@ -156,7 +156,7 @@ Save this setting in Hive and Firestore, and use it to schedule notifications.
 
 ---
 
-## ✅ 14. Theming and User Preferences
+## SKIP ✅ 14. Theming and User Preferences
 
 ```
 Allow toggling between light and dark theme in the Settings screen.
