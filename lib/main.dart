@@ -9,8 +9,11 @@ import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/theme_provider.dart';
 import 'package:habitly/screens/auth/login_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
+import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
+import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
+import 'package:habitly/services/sync_service.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -42,6 +45,20 @@ void main() async {
   await HabitStorageService.init();
   logger.i('Habit storage service initialized');
   
+  // Initialize habit history storage service
+  await HabitHistoryStorageService.init();
+  logger.i('Habit history storage service initialized');
+  
+  // Create providers container to manually initialize services
+  final container = ProviderContainer();
+  
+  // Initialize connectivity monitoring and sync services
+  // This ensures they're created and start listening for events
+  container.read(connectivityServiceProvider);
+  logger.i('Connectivity monitoring initialized');
+  
+  container.read(syncServiceProvider); 
+  logger.i('Offline support with auto sync is ready');
   logger.i('App initialization complete');
 
   runApp(

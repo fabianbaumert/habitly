@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habitly/services/connectivity_service.dart';
+import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
+import 'package:habitly/services/sync_service.dart';
 
 // Provider for habit history (completion by date)
 final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>((ref, date) async {
@@ -12,24 +15,52 @@ final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>(
   final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   
   try {
-    // Get the habit completion status for this specific date
-    final snapshot = await FirebaseFirestore.instance
-        .collection('habitHistory')
-        .doc(user.uid)
-        .collection('dates')
-        .doc(dateString)
-        .get();
-        
-    if (snapshot.exists && snapshot.data() != null) {
-      final data = snapshot.data() as Map<String, dynamic>;
-      // Convert from Map<String, dynamic> to Map<String, bool>
-      final Map<String, bool> typedData = Map.from(data.map(
-        (key, value) => MapEntry(key, value as bool)
-      ));
-      return typedData;
+    // Get the local habit history storage
+    final historyStorage = ref.read(habitHistoryStorageServiceProvider);
+    
+    // First check local storage
+    final localData = await historyStorage.getHabitHistory(user.uid, dateString);
+    
+    // Check if online and we should check for newer data
+    final isOnline = ref.read(isOnlineProvider);
+    
+    if (isOnline) {
+      try {
+        // Try to get data from Firestore
+        final snapshot = await FirebaseFirestore.instance
+            .collection('habitHistory')
+            .doc(user.uid)
+            .collection('dates')
+            .doc(dateString)
+            .get();
+            
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          // Convert from Map<String, dynamic> to Map<String, bool>
+          final Map<String, bool> firebaseData = Map.from(data.map(
+            (key, value) => MapEntry(key, value as bool)
+          ));
+          
+          // Merge, preferring local changes over remote when both exist
+          Map<String, bool> mergedData = {...firebaseData, ...localData};
+          
+          // If there are differences, update local storage
+          if (firebaseData.length != localData.length || 
+              !firebaseData.keys.every((key) => 
+                localData.containsKey(key) && localData[key] == firebaseData[key])) {
+            await historyStorage.saveHabitHistory(user.uid, dateString, mergedData);
+          }
+          
+          return mergedData;
+        }
+      } catch (e) {
+        appLogger.w('Error accessing Firestore for habit history: $e');
+        // Fallback to local data only
+      }
     }
     
-    return {};
+    // Return local data if online fetch failed or we're offline
+    return localData;
   } catch (e) {
     appLogger.e('Error fetching habit history: $e');
     return {}; // Return empty map on error
@@ -109,28 +140,12 @@ Future<void> recordHabitCompletion(String habitId, bool completed, DateTime date
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
 
-  // Format the date as YYYY-MM-DD
-  final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
   try {
-    // Reference to the document for this date
-    final docRef = FirebaseFirestore.instance
-        .collection('habitHistory')
-        .doc(user.uid)
-        .collection('dates')
-        .doc(dateString);
-
-    // Update the habit completion status using a transaction to handle concurrent updates
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      final snapshot = await transaction.get(docRef);
-      if (!snapshot.exists) {
-        transaction.set(docRef, {habitId: completed});
-      } else {
-        transaction.update(docRef, {habitId: completed});
-      }
-    });
+    // Use the sync service to handle this operation with offline support
+    final syncService = ProviderContainer().read(syncServiceProvider);
+    await syncService.recordHabitCompletion(habitId, completed, date);
     
-    appLogger.i('Recorded habit $habitId as ${completed ? "completed" : "uncompleted"} for $dateString');
+    appLogger.i('Recorded habit $habitId as ${completed ? "completed" : "uncompleted"} for ${date.toIso8601String().split('T')[0]}');
   } catch (e) {
     appLogger.e('Failed to record habit completion: $e');
     rethrow; // Rethrow to propagate the error
@@ -141,24 +156,35 @@ Future<void> recordHabitCompletion(String habitId, bool completed, DateTime date
 Future<void> bulkRecordHabitCompletions(Map<String, bool> habitStatuses, DateTime date) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
-
+  
   if (habitStatuses.isEmpty) return;
 
   // Format the date as YYYY-MM-DD
   final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
   try {
-    // Reference to the document for this date
-    final docRef = FirebaseFirestore.instance
-        .collection('habitHistory')
-        .doc(user.uid)
-        .collection('dates')
-        .doc(dateString);
-
-    // Use set with merge option to update or create the document
-    await docRef.set(habitStatuses, SetOptions(merge: true));
+    // Get the local habit history storage
+    final historyStorage = ProviderContainer().read(habitHistoryStorageServiceProvider);
     
-    appLogger.i('Recorded ${habitStatuses.length} habit completions for $dateString');
+    // Save to local storage first
+    await historyStorage.saveHabitHistory(user.uid, dateString, habitStatuses);
+    
+    // Try to update Firebase if online
+    final isOnline = await ProviderContainer().read(connectivityServiceProvider).isConnected();
+    if (isOnline) {
+      // Reference to the document for this date
+      final docRef = FirebaseFirestore.instance
+          .collection('habitHistory')
+          .doc(user.uid)
+          .collection('dates')
+          .doc(dateString);
+
+      // Use set with merge option to update or create the document
+      await docRef.set(habitStatuses, SetOptions(merge: true));
+      appLogger.i('Recorded ${habitStatuses.length} habit completions in Firebase for $dateString');
+    } else {
+      appLogger.i('Recorded ${habitStatuses.length} habit completions locally for $dateString (will sync later)');
+    }
   } catch (e) {
     appLogger.e('Failed to record habit completions: $e');
     rethrow;

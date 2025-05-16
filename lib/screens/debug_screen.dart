@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:habitly/services/connectivity_service.dart';
+import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
+import 'package:habitly/services/logger_service.dart';
 
 class DebugScreen extends StatelessWidget {
   const DebugScreen({super.key});
@@ -41,17 +44,38 @@ class DebugScreen extends StatelessWidget {
               // If confirmed, reset the database
               if (confirmed == true) {
                 await HabitStorageService.resetDatabase();
+                await HabitHistoryStorageService.resetDatabase();
 
                 // Show confirmation snackbar
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Hive database has been reset'),
+                      content: Text('Hive databases have been reset'),
                       backgroundColor: Colors.green,
                     ),
                   );
                 }
               }
+            },
+          ),
+          ListTile(
+            title: const Text('Check Network Status'),
+            subtitle: const Text('Display current connectivity status'),
+            trailing: const Icon(Icons.network_check),
+            onTap: () async {
+              final connectivityService = ConnectivityService();
+              final status = await connectivityService.getNetworkStatus();
+              
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Network status: ${status == NetworkStatus.online ? "Online" : "Offline"}'),
+                    backgroundColor: status == NetworkStatus.online ? Colors.green : Colors.orange,
+                  ),
+                );
+              }
+              
+              connectivityService.dispose();
             },
           ),
           const Divider(),

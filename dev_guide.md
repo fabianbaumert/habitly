@@ -140,7 +140,7 @@ add some simple logger logs on important parts for debugging purposes.
 ## ✅ 12. Offline Support and Auto Sync
 
 ```
-Store all habit and progress data locally with Hive.
+Store all habit and habitHistory data locally with Hive.
 Automatically sync with Firebase when internet becomes available.
 If there is a conflict between local and remote, use the most recent data automatically.
 ```

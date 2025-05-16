@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
+import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
 
@@ -109,13 +110,22 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         state = AsyncValue.data([...habits, habit]);
       });
       
-      // Sync with Firestore
-      await FirebaseFirestore.instance
-          .collection('habits')
-          .doc(habit.id)
-          .set(habit.toMap());
-          
-      appLogger.i('Added habit: ${habit.name} (${habit.id})');
+      // Check connectivity before trying to sync with Firestore
+      final connectivityService = ConnectivityService();
+      final isOnline = await connectivityService.isConnected();
+      
+      if (isOnline) {
+        // Sync with Firestore if online
+        await FirebaseFirestore.instance
+            .collection('habits')
+            .doc(habit.id)
+            .set(habit.toMap());
+        appLogger.i('Added habit to Firebase: ${habit.name} (${habit.id})');
+      } else {
+        appLogger.i('Added habit locally (offline): ${habit.name} (${habit.id}) - will sync when online');
+      }
+      
+      connectivityService.dispose();
     } catch (e) {
       appLogger.e('Error adding habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
@@ -135,13 +145,22 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         state = AsyncValue.data(updatedHabits);
       });
       
-      // Sync with Firestore
-      await FirebaseFirestore.instance
-          .collection('habits')
-          .doc(habit.id)
-          .update(habit.toMap());
-          
-      appLogger.i('Updated habit: ${habit.name} (${habit.id})');
+      // Check connectivity before trying to sync with Firestore
+      final connectivityService = ConnectivityService();
+      final isOnline = await connectivityService.isConnected();
+      
+      if (isOnline) {
+        // Sync with Firestore if online
+        await FirebaseFirestore.instance
+            .collection('habits')
+            .doc(habit.id)
+            .update(habit.toMap());
+        appLogger.i('Updated habit in Firebase: ${habit.name} (${habit.id})');
+      } else {
+        appLogger.i('Updated habit locally (offline): ${habit.name} (${habit.id}) - will sync when online');
+      }
+      
+      connectivityService.dispose();
     } catch (e) {
       appLogger.e('Error updating habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
@@ -160,13 +179,24 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         state = AsyncValue.data(updatedHabits);
       });
       
-      // Delete from Firestore
-      await FirebaseFirestore.instance
-          .collection('habits')
-          .doc(habitId)
-          .delete();
-          
-      appLogger.i('Deleted habit: $habitId');
+      // Check connectivity before trying to sync with Firestore
+      final connectivityService = ConnectivityService();
+      final isOnline = await connectivityService.isConnected();
+      
+      if (isOnline) {
+        // Delete from Firestore if online
+        await FirebaseFirestore.instance
+            .collection('habits')
+            .doc(habitId)
+            .delete();
+        appLogger.i('Deleted habit from Firebase: $habitId');
+      } else {
+        appLogger.i('Deleted habit locally (offline): $habitId - will sync when online');
+        // Note: We'll need special handling during sync since the habit is already deleted locally
+        // This is a limitation of our simple implementation
+      }
+      
+      connectivityService.dispose();
     } catch (e) {
       appLogger.e('Error deleting habit: $e');
       state = AsyncValue.error(e, StackTrace.current);
