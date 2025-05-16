@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/theme_preference.dart';
 import 'package:hive/hive.dart';
+import 'package:logger/logger.dart';
 
 // Theme state notifier to handle theme changes
 class ThemeNotifier extends StateNotifier<ThemePreference> {
@@ -32,8 +33,7 @@ class ThemeNotifier extends StateNotifier<ThemePreference> {
       final box = await Hive.openBox('preferences');
       await box.put('isDarkMode', state.isDarkMode);
     } catch (e) {
-      // Handle any errors saving the preference
-      print('Error saving theme preference: $e');
+      Logger().e('Error saving theme preference: $e');
     }
   }
   
@@ -49,7 +49,7 @@ class ThemeNotifier extends StateNotifier<ThemePreference> {
       final box = await Hive.openBox('preferences');
       await box.put('isDarkMode', isDarkMode);
     } catch (e) {
-      print('Error saving theme preference: $e');
+      Logger().e('Error saving theme preference: $e');
     }
   }
 }

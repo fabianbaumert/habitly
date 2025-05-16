@@ -9,7 +9,7 @@ import 'package:habitly/widgets/app_drawer.dart';
 import 'package:habitly/widgets/habit_card.dart';
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -139,8 +139,8 @@ class HomeScreen extends ConsumerWidget {
             ),
           );
         },
-        child: const Icon(Icons.add),
         tooltip: 'Add New Habit',
+        child: const Icon(Icons.add),
       ),
     );
   }

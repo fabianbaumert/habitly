@@ -4,14 +4,15 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitly/models/habit.dart';
+import 'package:habitly/services/logger_service.dart';
 
 class HabitFormScreen extends ConsumerStatefulWidget {
   final Habit? existingHabit;
   
   const HabitFormScreen({
-    Key? key, 
+    super.key, 
     this.existingHabit,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<HabitFormScreen> createState() => _HabitFormScreenState();
@@ -57,12 +58,14 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
         _testMessage = 'Firebase connection successful';
       });
       
-      print('Firebase connection test successful: ${testDoc.exists ? 'Document exists' : 'Document does not exist'}');
+      appLogger.e('Firebase connection test successful: ${testDoc.exists ? 'Document exists' : 'Document does not exist'}');
+      
     } catch (e) {
       setState(() {
         _testMessage = 'Firebase connection failed: $e';
       });
-      print('Firebase connection test failed: $e');
+      appLogger.e('Firebase connection test failed: $e');
+      
     }
   }
 

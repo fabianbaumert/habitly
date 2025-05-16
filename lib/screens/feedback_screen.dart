@@ -6,7 +6,7 @@ import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/widgets/app_drawer.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+  const FeedbackScreen({super.key});
 
   @override
   ConsumerState<FeedbackScreen> createState() => _FeedbackScreenState();
@@ -40,8 +40,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
     // Get current feedback submission state
     final submissionState = ref.watch(feedbackSubmissionStateProvider);
-    final feedbackAsyncState = ref.watch(feedbackSubmissionProvider);
-
+  
     return Scaffold(
       appBar: AppBar(
         title: const Text('Send Feedback'),

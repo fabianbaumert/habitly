@@ -9,7 +9,7 @@ import 'package:habitly/screens/settings_screen.dart';
 import 'package:flutter/foundation.dart';
 
 class AppDrawer extends ConsumerWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

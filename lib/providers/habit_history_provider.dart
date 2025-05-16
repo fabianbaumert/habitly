@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitly/models/habit.dart';
 import 'package:habitly/services/logger_service.dart';
 
 // Provider for habit history (completion by date)
@@ -134,7 +133,7 @@ Future<void> recordHabitCompletion(String habitId, bool completed, DateTime date
     appLogger.i('Recorded habit $habitId as ${completed ? "completed" : "uncompleted"} for $dateString');
   } catch (e) {
     appLogger.e('Failed to record habit completion: $e');
-    throw e; // Rethrow to propagate the error
+    rethrow; // Rethrow to propagate the error
   }
 }
 
@@ -162,6 +161,6 @@ Future<void> bulkRecordHabitCompletions(Map<String, bool> habitStatuses, DateTim
     appLogger.i('Recorded ${habitStatuses.length} habit completions for $dateString');
   } catch (e) {
     appLogger.e('Failed to record habit completions: $e');
-    throw e;
+    rethrow;
   }
 }

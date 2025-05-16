@@ -4,7 +4,7 @@ import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/widgets/app_drawer.dart';
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 final calendarUpdateProvider = StateProvider<int>((ref) => 0);
 
 class CalendarScreen extends ConsumerStatefulWidget {
-  const CalendarScreen({Key? key}) : super(key: key);
+  const CalendarScreen({super.key});
 
   @override
   ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
@@ -269,7 +269,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     markerColor = Colors.amber;
                   } else {
                     // No habits completed
-                    markerColor = Colors.grey.withOpacity(0.3);
+                    markerColor = Colors.grey.withAlpha((0.3 * 255).toInt());
                   }
                   
                   // Only show markers for dates up to today
@@ -472,7 +472,6 @@ class _LegendItem extends StatelessWidget {
   final String label;
   
   const _LegendItem({
-    super.key,
     required this.color,
     required this.label,
   });

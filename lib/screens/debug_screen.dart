@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 
 class DebugScreen extends StatelessWidget {
-  const DebugScreen({Key? key}) : super(key: key);
+  const DebugScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

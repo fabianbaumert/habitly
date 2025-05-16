@@ -14,9 +14,9 @@ class HabitDetailScreen extends ConsumerWidget {
   final Habit habit;
 
   const HabitDetailScreen({
-    Key? key,
+    super.key,
     required this.habit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -358,7 +358,7 @@ class HabitDetailScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isCompleted 
-                  ? Colors.green.withOpacity(0.8) 
+                  ? Colors.green.withAlpha((0.8 * 255).toInt()) 
                   : Colors.transparent,
                 border: isToday 
                   ? Border.all(color: Theme.of(context).primaryColor, width: 2) 

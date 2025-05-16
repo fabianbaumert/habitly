@@ -7,9 +7,9 @@ class HabitCard extends ConsumerWidget {
   final Habit habit;
   
   const HabitCard({
-    Key? key,
+    super.key,
     required this.habit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

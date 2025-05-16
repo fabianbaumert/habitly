@@ -5,7 +5,7 @@ import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/screens/auth/register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
