@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/navigation_provider.dart';
-import 'package:habitly/widgets/app_drawer.dart';
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  final bool showDrawer;
+  
+  const SettingsScreen({
+    super.key,
+    this.showDrawer = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +21,6 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      drawer: const AppDrawer(),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

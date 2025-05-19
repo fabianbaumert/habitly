@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/feedback_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/services/logger_service.dart';
-import 'package:habitly/widgets/app_drawer.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
-  const FeedbackScreen({super.key});
+  final bool showDrawer;
+  
+  const FeedbackScreen({
+    super.key, 
+    this.showDrawer = true,
+  });
 
   @override
   ConsumerState<FeedbackScreen> createState() => _FeedbackScreenState();
@@ -45,7 +49,6 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       appBar: AppBar(
         title: const Text('Send Feedback'),
       ),
-      drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

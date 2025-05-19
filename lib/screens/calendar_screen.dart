@@ -4,7 +4,6 @@ import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
-import 'package:habitly/widgets/app_drawer.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -12,7 +11,12 @@ import 'package:intl/intl.dart';
 final calendarUpdateProvider = StateProvider<int>((ref) => 0);
 
 class CalendarScreen extends ConsumerStatefulWidget {
-  const CalendarScreen({super.key});
+  final bool showDrawer;
+  
+  const CalendarScreen({
+    super.key,
+    this.showDrawer = true,
+  });
 
   @override
   ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
@@ -198,7 +202,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         ],
       ),
-      drawer: const AppDrawer(),
       body: Column(
         children: [
           _buildCalendar(),

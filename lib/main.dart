@@ -10,6 +10,7 @@ import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/theme_provider.dart';
 import 'package:habitly/screens/auth/login_screen.dart';
 import 'package:habitly/screens/home_screen.dart';
+import 'package:habitly/screens/main_screen.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
 import 'package:habitly/services/habit_history_storage_service.dart';
@@ -91,8 +92,8 @@ class MainApp extends ConsumerWidget {
       theme: appTheme,
       home: authState.when(
         data: (user) {
-          // If user is authenticated, show home screen, otherwise show login
-          return user != null ? const HomeScreen() : const LoginScreen();
+          // If user is authenticated, show main screen with bottom navigation, otherwise show login
+          return user != null ? const MainScreen() : const LoginScreen();
         },
         loading: () => const Scaffold(
           body: Center(

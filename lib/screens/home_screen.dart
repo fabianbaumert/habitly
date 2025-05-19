@@ -5,11 +5,15 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/habit_detail_screen.dart';
 import 'package:habitly/screens/habit_form_screen.dart';
-import 'package:habitly/widgets/app_drawer.dart';
 import 'package:habitly/widgets/habit_card.dart';
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+  final bool showDrawer;
+  
+  const HomeScreen({
+    super.key, 
+    this.showDrawer = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,7 +38,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      drawer: const AppDrawer(),
       body: habitsAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(),
