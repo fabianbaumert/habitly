@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'firebase_options.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/theme_provider.dart';
@@ -16,8 +17,10 @@ import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/services/sync_service.dart';
 
 void main() async {
-  // Ensure Flutter bindings are initialized
-  WidgetsFlutterBinding.ensureInitialized();
+  // Ensure Flutter bindings are initialized and preserve splash screen
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // Keep splash screen visible while initializing services
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Initialize logger
   final logger = appLogger;
@@ -60,6 +63,9 @@ void main() async {
   container.read(syncServiceProvider); 
   logger.i('Offline support with auto sync is ready');
   logger.i('App initialization complete');
+  
+  // Remove the splash screen when initialization is complete
+  FlutterNativeSplash.remove();
 
   runApp(
     // Wrap app with ProviderScope for Riverpod
