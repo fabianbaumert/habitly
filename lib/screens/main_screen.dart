@@ -24,6 +24,7 @@ class MainScreen extends ConsumerWidget {
         case NavigationScreen.calendar:
           return const CalendarScreen(showDrawer: false);
         case NavigationScreen.feedback:
+          // Feedback is now accessed via Account, but still handle it if deep linked
           return const FeedbackScreen(showDrawer: false);
         case NavigationScreen.account:
           return const AccountScreen(showDrawer: false);
@@ -36,7 +37,6 @@ class MainScreen extends ConsumerWidget {
       body: _getCurrentScreen(),
       floatingActionButton: _buildFloatingActionButton(context, currentScreen),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
         currentIndex: _getNavigationIndex(currentScreen),
         onTap: (index) => _onNavigationTapped(index, notifier),
         items: const [
@@ -47,10 +47,6 @@ class MainScreen extends ConsumerWidget {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.feedback),
-            label: 'Feedback',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
@@ -68,10 +64,8 @@ class MainScreen extends ConsumerWidget {
         return 0;
       case NavigationScreen.calendar:
         return 1;
-      case NavigationScreen.feedback:
-        return 2;
       case NavigationScreen.account:
-        return 3;
+        return 2;
       default:
         return 0;
     }
@@ -87,9 +81,6 @@ class MainScreen extends ConsumerWidget {
         notifier.setScreen(NavigationScreen.calendar);
         break;
       case 2:
-        notifier.setScreen(NavigationScreen.feedback);
-        break;
-      case 3:
         notifier.setScreen(NavigationScreen.account);
         break;
     }
