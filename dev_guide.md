@@ -50,7 +50,7 @@ Implement a drawer-based navigation layout with the following pages:
 - Home (Habit overview)
 - Calendar View
 - Feedback
-- Settings
+- Account
 Use Flutter's Drawer widget and maintain state via Riverpod.
 ```
 
@@ -129,7 +129,7 @@ When submitted, send the feedback using Dio to a mock API endpoint;
 Enable push notifications with local notifications and the package flutter_local_notifications.
 
 Ask for notification permissions on first app launch.
-dont do anything on the settings screen
+dont do anything on the account screen
 dont use firebase messaging.
 just implement the notification scheduling properly when creating/editing/deleting a habit - nothing more.
 add some simple logger logs on important parts for debugging purposes.
@@ -159,7 +159,7 @@ Save this setting in Hive and Firestore, and use it to schedule notifications.
 ## SKIP ✅ 14. Theming and User Preferences
 
 ```
-Allow toggling between light and dark theme in the Settings screen.
+Allow toggling between light and dark theme in the Account screen.
 Save the selected theme in Hive and manage it with Riverpod.
 ```
 

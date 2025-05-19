@@ -4,7 +4,7 @@ enum NavigationScreen {
   home,
   calendar,
   feedback,
-  settings,
+  account,
   debug,
 }
 

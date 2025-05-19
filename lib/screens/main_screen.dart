@@ -5,7 +5,7 @@ import 'package:habitly/screens/calendar_screen.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 import 'package:habitly/screens/habit_form_screen.dart'; // Import for habit form
 import 'package:habitly/screens/home_screen.dart';
-import 'package:habitly/screens/settings_screen.dart';
+import 'package:habitly/screens/account_screen.dart';
 
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
@@ -25,8 +25,8 @@ class MainScreen extends ConsumerWidget {
           return const CalendarScreen(showDrawer: false);
         case NavigationScreen.feedback:
           return const FeedbackScreen(showDrawer: false);
-        case NavigationScreen.settings:
-          return const SettingsScreen(showDrawer: false);
+        case NavigationScreen.account:
+          return const AccountScreen(showDrawer: false);
         default:
           return const HomeScreen(showDrawer: false);
       }
@@ -53,8 +53,8 @@ class MainScreen extends ConsumerWidget {
             label: 'Feedback',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: Icon(Icons.account_circle),
+            label: 'Account',
           ),
         ],
       ),
@@ -70,7 +70,7 @@ class MainScreen extends ConsumerWidget {
         return 1;
       case NavigationScreen.feedback:
         return 2;
-      case NavigationScreen.settings:
+      case NavigationScreen.account:
         return 3;
       default:
         return 0;
@@ -90,7 +90,7 @@ class MainScreen extends ConsumerWidget {
         notifier.setScreen(NavigationScreen.feedback);
         break;
       case 3:
-        notifier.setScreen(NavigationScreen.settings);
+        notifier.setScreen(NavigationScreen.account);
         break;
     }
   }
