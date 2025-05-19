@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart'; // Import for kDebugMode
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/calendar_screen.dart';
-import 'package:habitly/screens/debug_screen.dart'; // Import for debug screen
 import 'package:habitly/screens/feedback_screen.dart';
+import 'package:habitly/screens/habit_form_screen.dart'; // Import for habit form
 import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/screens/settings_screen.dart';
 
@@ -35,6 +34,7 @@ class MainScreen extends ConsumerWidget {
     
     return Scaffold(
       body: _getCurrentScreen(),
+      floatingActionButton: _buildFloatingActionButton(context, currentScreen),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _getNavigationIndex(currentScreen),
@@ -58,18 +58,6 @@ class MainScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: kDebugMode ? FloatingActionButton(
-        onPressed: () {
-          // Navigate to the debug screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DebugScreen()),
-          );
-        },
-        mini: true,
-        tooltip: 'Debug Menu',
-        child: const Icon(Icons.bug_report),
-      ) : null,
     );
   }
   
@@ -105,5 +93,27 @@ class MainScreen extends ConsumerWidget {
         notifier.setScreen(NavigationScreen.settings);
         break;
     }
+  }
+  
+  // Build the floating action button (only on home screen)
+  Widget? _buildFloatingActionButton(BuildContext context, NavigationScreen currentScreen) {
+    // Only show the "Add Habit" button on the Home screen
+    if (currentScreen == NavigationScreen.home) {
+      return FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HabitFormScreen(),
+            ),
+          );
+        },
+        tooltip: 'Add New Habit',
+        child: const Icon(Icons.add),
+      );
+    }
+    
+    // No FAB on other screens
+    return null;
   }
 }

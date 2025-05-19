@@ -133,18 +133,6 @@ class HomeScreen extends ConsumerWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HabitFormScreen(),
-            ),
-          );
-        },
-        tooltip: 'Add New Habit',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
