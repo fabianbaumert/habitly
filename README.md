@@ -12,14 +12,14 @@
 - 📝 Submit feedback directly through the app
 - 🌐 Works offline with local sync using Hive
 - 🎯 Clean, minimal design with drawer navigation
-- ☁️ Full integration with Firebase (Auth, Firestore, Messaging)
+- ☁️ Full integration with Firebase (Auth, Firestore)
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Flutter** – Cross-platform app development
-- **Firebase** – Auth, Firestore, Messaging
+- **Firebase** – Auth, Firestore
 - **Riverpod** – State management
 - **Hive** – Lightweight local storage
 - **Dio** – HTTP client for feedback
@@ -34,7 +34,7 @@
 
 - Flutter SDK
 - Firebase CLI (for setup)
-- Android Studio / Xcode
+- VS Code / Android Studio / Xcode
 
 ### Setup Instructions
 
