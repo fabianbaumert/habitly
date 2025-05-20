@@ -18,7 +18,7 @@ class TodayScreen extends ConsumerStatefulWidget {
 }
 
 class _TodayScreenState extends ConsumerState<TodayScreen> {
-  bool _showCompleted = true;
+  bool _showCompleted = false;
 
   @override
   void initState() {
