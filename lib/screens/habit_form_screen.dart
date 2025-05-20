@@ -4,7 +4,6 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitly/models/habit.dart';
-import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/widgets/frequency_selector.dart';
 
 class HabitFormScreen extends ConsumerStatefulWidget {
@@ -25,7 +24,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   final _descriptionController = TextEditingController();
 
   bool _isLoading = false;
-  String _testMessage = '';
   bool get _isEditMode => widget.existingHabit != null;
   
   // Frequency settings
@@ -48,37 +46,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
       _specificDays = widget.existingHabit!.specificDays;
       _dayOfMonth = widget.existingHabit!.dayOfMonth;
       _month = widget.existingHabit!.month;
-    } else {
-      // Only test Firebase connection in create mode
-      _testFirebaseConnection();
-    }
-  }
-
-  // Test Firebase connection
-  Future<void> _testFirebaseConnection() async {
-    try {
-      setState(() {
-        _testMessage = 'Testing Firebase connection...';
-      });
-      
-      // Try to access Firestore
-      final testDoc = await FirebaseFirestore.instance
-          .collection('_test_connection')
-          .doc('test')
-          .get();
-      
-      setState(() {
-        _testMessage = 'Firebase connection successful';
-      });
-      
-      appLogger.e('Firebase connection test successful: ${testDoc.exists ? 'Document exists' : 'Document does not exist'}');
-      
-    } catch (e) {
-      setState(() {
-        _testMessage = 'Firebase connection failed: $e';
-      });
-      appLogger.e('Firebase connection test failed: $e');
-      
     }
   }
 
@@ -197,20 +164,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              // Firebase connection test message (only in create mode)
-              if (!_isEditMode && _testMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    _testMessage,
-                    style: TextStyle(
-                      color: _testMessage.contains('failed')
-                          ? Colors.red
-                          : Colors.green,
-                    ),
-                  ),
-                ),
-              
               // Habit Name
               TextFormField(
                 controller: _nameController,
