@@ -45,16 +45,16 @@ class MainScreen extends ConsumerWidget {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.today),
             label: 'Today',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Calendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Habits',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
@@ -68,11 +68,11 @@ class MainScreen extends ConsumerWidget {
   // Convert navigation screen to bottom navigation index
   int _getNavigationIndex(NavigationScreen screen) {
     switch (screen) {
-      case NavigationScreen.home:
-        return 0;
       case NavigationScreen.today:
-        return 1;
+        return 0;
       case NavigationScreen.calendar:
+        return 1;
+      case NavigationScreen.home:
         return 2;
       case NavigationScreen.account:
         return 3;
@@ -85,13 +85,13 @@ class MainScreen extends ConsumerWidget {
   void _onNavigationTapped(int index, NavigationNotifier notifier) {
     switch (index) {
       case 0:
-        notifier.setScreen(NavigationScreen.home);
-        break;
-      case 1:
         notifier.setScreen(NavigationScreen.today);
         break;
-      case 2:
+      case 1:
         notifier.setScreen(NavigationScreen.calendar);
+        break;
+      case 2:
+        notifier.setScreen(NavigationScreen.home);
         break;
       case 3:
         notifier.setScreen(NavigationScreen.account);
@@ -99,10 +99,10 @@ class MainScreen extends ConsumerWidget {
     }
   }
   
-  // Build the floating action button (only on Home and Today screens)
+  // Build the floating action button (only on Home screen)
   Widget? _buildFloatingActionButton(BuildContext context, NavigationScreen currentScreen) {
-    // Show the "Add Habit" button on the Home and Today screens
-    if (currentScreen == NavigationScreen.home || currentScreen == NavigationScreen.today) {
+    // Show the "Add Habit" button only on the Home screen
+    if (currentScreen == NavigationScreen.home) {
       return FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -116,7 +116,6 @@ class MainScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       );
     }
-    
     // No FAB on other screens
     return null;
   }
