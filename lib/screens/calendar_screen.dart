@@ -292,8 +292,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       shape: BoxShape.circle,
                       color: markerColor,
                     ),
-                    width: 8,
-                    height: 8,
+                    width: 12, // was 8
+                    height: 12, // was 8
                   );
                 }
               );
