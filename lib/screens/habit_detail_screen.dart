@@ -66,12 +66,6 @@ class HabitDetailScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             const Divider(),
             
-            // Progress History Section
-            _buildProgressHistorySection(context, currentHabit),
-            
-            const SizedBox(height: 24),
-            const Divider(),
-            
             // Calendar Section
             _buildCalendarSection(context, currentHabit),
           ],
@@ -80,7 +74,7 @@ class HabitDetailScreen extends ConsumerWidget {
     );
   }
 
-  // Habit Overview Section
+  // Habit Overview Section (read-only, only description and frequency, no headline, info icon for description)
   Widget _buildOverviewSection(BuildContext context, WidgetRef ref, Habit currentHabit) {
     return Card(
       elevation: 2,
@@ -89,187 +83,37 @@ class HabitDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Overview',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            
-            // Status indicator - Modified to remove "Status:" label and keep button in same line
-            Row(
-              children: [
-                Icon(
-                  currentHabit.isDone ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: currentHabit.isDone ? Colors.green : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                // Status text without "Status:" prefix
-                Expanded(
-                  child: Text(
-                    currentHabit.isDone ? "Completed today" : "Not completed today",
-                    style: TextStyle(
-                      color: currentHabit.isDone ? Colors.green : Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                // Toggle completion button - back in the same row
-                TextButton.icon(
-                  icon: Icon(
-                    currentHabit.isDone ? Icons.undo : Icons.check,
-                    color: currentHabit.isDone ? Colors.orange : Colors.green,
-                    size: 20, // Slightly smaller icon to help fit
-                  ),
-                  label: Text(
-                    currentHabit.isDone ? 'Undo' : 'Complete',
-                    style: TextStyle(
-                      color: currentHabit.isDone ? Colors.orange : Colors.green,
-                      fontSize: 14, // Slightly smaller text to help fit
-                    ),
-                  ),
-                  onPressed: () {
-                    ref.read(habitsProvider.notifier).toggleHabitCompletion(currentHabit);
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Smaller padding
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
             // Description
             if (currentHabit.description != null && currentHabit.description!.isNotEmpty)
               Row(
                 children: [
-                  const Icon(Icons.flag, color: Colors.blue),
+                  const Icon(Icons.info_outline, color: Colors.blue),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Description: ${currentHabit.description}',
+                      currentHabit.description!,
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
               ),
-            
+
             const SizedBox(height: 12),
-            
-            // Creation date
+
+            // Frequency
             Row(
               children: [
-                const Icon(Icons.calendar_today, color: Colors.grey),
+                const Icon(Icons.repeat, color: Colors.purple),
                 const SizedBox(width: 8),
                 Text(
-                  'Started: ${DateFormat.yMMMd().format(currentHabit.createdAt)}',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  currentHabit.getFrequencyDescription(),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: currentHabit.isDone ? 1.0 : 0.0,
-                minHeight: 10,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  currentHabit.isDone ? Colors.green : Theme.of(context).primaryColor,
-                ),
-              ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // Progress History Section - Shows weekly/daily overview
-  Widget _buildProgressHistorySection(BuildContext context, Habit currentHabit) {
-    // Get the current date and the days of the week
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    
-    // Calculate the dates for the current week (Monday to Sunday)
-    final currentWeekday = now.weekday; // 1 for Monday, 7 for Sunday
-    final firstDayOfWeek = today.subtract(Duration(days: currentWeekday - 1));
-    
-    // In a real implementation, we'd fetch the habit completion history
-    // Since we don't have habit history tracking yet, we'll just show
-    // the current completion status if it's today, otherwise no historical data
-    final isCompletedToday = currentHabit.isDone;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Weekly Progress',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 16),
-        
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(7, (index) {
-            final dayName = daysOfWeek[index];
-            final dayDate = firstDayOfWeek.add(Duration(days: index));
-            final isToday = dayDate.year == today.year && 
-                            dayDate.month == today.month &&
-                            dayDate.day == today.day;
-            final isPastDay = dayDate.compareTo(today) <= 0;
-            // Only show completed if it's today and isDone is true
-            final isCompleted = isToday && isCompletedToday;
-            
-            return Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isPastDay
-                        ? (isCompleted ? Colors.green : Colors.grey[300])
-                        : Colors.grey[200], // Future days are lighter grey
-                  ),
-                  child: Center(
-                    child: isPastDay
-                        ? (isToday
-                            ? Icon(
-                                isCompleted ? Icons.check : Icons.close,
-                                color: isCompleted ? Colors.white : Colors.grey[600],
-                                size: 20,
-                              )
-                            : Text(
-                                dayName[0], // Just the first letter for past days
-                                style: TextStyle(color: Colors.grey[600]),
-                              ))
-                        : Text(
-                            dayName[0], // Just the first letter for future days
-                            style: TextStyle(color: Colors.grey[400]),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  dayName,
-                  style: TextStyle(
-                    color: isPastDay ? Colors.black : Colors.grey[400],
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-              ],
-            );
-          }),
-        ),
-      ],
     );
   }
 
