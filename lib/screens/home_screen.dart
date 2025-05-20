@@ -113,7 +113,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         );
                       },
-                      child: HabitCard(habit: habit),
+                      child: HabitCard(habit: habit, showCheckbox: false),
                     );
                   },
                 ),

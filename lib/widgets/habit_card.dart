@@ -5,17 +5,16 @@ import 'package:habitly/providers/habit_provider.dart';
 
 class HabitCard extends ConsumerWidget {
   final Habit habit;
+  final bool showCheckbox;
   
   const HabitCard({
     super.key,
     required this.habit,
+    this.showCheckbox = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Calculate progress - for now we'll use isDone as the progress indicator
-    final progress = habit.isDone ? 1.0 : 0.0;
-    
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -38,18 +37,24 @@ class HabitCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Checkbox(
-                  value: habit.isDone,
-                  onChanged: (_) {
-                    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                  },
-                ),
+                if (showCheckbox)
+                  Checkbox(
+                    value: habit.isDone,
+                    onChanged: (_) {
+                      ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                    },
+                  )
+                else
+                  SizedBox(
+                    width: 40, // Approximate width of a Checkbox
+                    height: 40,
+                  ),
               ],
             ),
             const SizedBox(height: 8),
             if (habit.dailyGoal != null && habit.dailyGoal!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
                   'Goal: ${habit.dailyGoal}',
                   style: TextStyle(
@@ -58,31 +63,17 @@ class HabitCard extends ConsumerWidget {
                   ),
                 ),
               ),
-            const SizedBox(height: 4),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 8,
-                backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  habit.isDone ? Colors.green : Theme.of(context).primaryColor,
+            // Always show frequency description below the goal
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                habit.getFrequencyDescription(),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.blueGrey[400],
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  habit.isDone ? 'Completed' : 'In progress',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: habit.isDone ? Colors.green : Colors.orange,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
             ),
           ],
         ),
