@@ -268,4 +268,93 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       throw Exception('Could not update habit completion. Please try again later.');
     }
   }
+
+  /// Determines if a habit is due on the specified date based on its frequency
+  bool isHabitDueOnDate(Habit habit, DateTime date) {
+    return habit.isDueOn(date);
+  }
+
+  /// Get all habits that are due on a specific date
+  List<Habit> getHabitsDueOnDate(DateTime date) {
+    List<Habit> dueHabits = [];
+    
+    state.whenData((habits) {
+      dueHabits = habits.where((habit) => isHabitDueOnDate(habit, date)).toList();
+    });
+    
+    return dueHabits;
+  }
+  
+  /// Filter habits by frequency type
+  List<Habit> getHabitsByFrequencyType(FrequencyType frequencyType) {
+    List<Habit> filteredHabits = [];
+    
+    state.whenData((habits) {
+      filteredHabits = habits.where((habit) => habit.frequencyType == frequencyType).toList();
+    });
+    
+    return filteredHabits;
+  }
+  
+  /// Get habits that repeat on a specific day of the week
+  List<Habit> getHabitsForDayOfWeek(int dayOfWeek) {
+    List<Habit> filteredHabits = [];
+    
+    state.whenData((habits) {
+      filteredHabits = habits.where((habit) {
+        if (habit.frequencyType == FrequencyType.weekly && habit.dayOfWeek == dayOfWeek) {
+          return true;
+        }
+        if (habit.frequencyType == FrequencyType.specificDays && 
+            habit.specificDays != null && 
+            habit.specificDays!.any((day) => day.value == dayOfWeek)) {
+          return true;
+        }
+        return false;
+      }).toList();
+    });
+    
+    return filteredHabits;
+  }
+  
+  /// Check if any habits are due today
+  bool hasHabitsDueToday() {
+    final today = DateTime.now();
+    return getHabitsDueOnDate(today).isNotEmpty;
+  }
+
+  /// Update a habit with new frequency settings
+  Future<void> updateHabitFrequency({
+    required String habitId, 
+    required FrequencyType frequencyType,
+    List<DayOfWeek>? specificDays,
+    int? dayOfWeek,
+    int? dayOfMonth,
+    int? month,
+    int? customInterval,
+  }) async {
+    try {
+      Habit? habitToUpdate;
+      
+      state.whenData((habits) {
+        habitToUpdate = habits.firstWhere((h) => h.id == habitId);
+      });
+      
+      if (habitToUpdate != null) {
+        final updatedHabit = habitToUpdate!.copyWith(
+          frequencyType: frequencyType,
+          specificDays: specificDays,
+          dayOfWeek: dayOfWeek,
+          dayOfMonth: dayOfMonth, 
+          month: month,
+          customInterval: customInterval,
+        );
+        
+        await updateHabit(updatedHabit);
+      }
+    } catch (e) {
+      appLogger.e('Error updating habit frequency: $e');
+      throw Exception('Could not update habit frequency. Please try again later.');
+    }
+  }
 }
