@@ -34,10 +34,10 @@ class AccountScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Center(
+          Center(
             child: Text(
-              'Account',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ref.read(authServiceProvider).currentUser?.email ?? '',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(height: 30),
