@@ -5,6 +5,7 @@ import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/widgets/habit_card.dart';
 import 'package:habitly/screens/habit_detail_screen.dart';
 import 'package:habitly/widgets/celebration_confetti.dart';
+import 'package:habitly/models/habit.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   final bool showDrawer;
@@ -20,6 +21,32 @@ class TodayScreen extends ConsumerStatefulWidget {
 
 class _TodayScreenState extends ConsumerState<TodayScreen> {
   bool _showCompleted = false;
+  bool _showConfetti = false;
+  DateTime? _lastConfettiDate;
+
+  void _handleToggleHabit(Habit habit, List<Habit> dueHabits) {
+    final wasLastTodo = dueHabits.where((h) => !h.isDone && h.id != habit.id).isEmpty;
+    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+    // Only show confetti if this is the last todo and not already shown today
+    final today = DateTime.now();
+    final isNewDay = _lastConfettiDate == null ||
+      _lastConfettiDate!.year != today.year ||
+      _lastConfettiDate!.month != today.month ||
+      _lastConfettiDate!.day != today.day;
+    if (wasLastTodo && !habit.isDone && (isNewDay || !_showConfetti)) {
+      setState(() {
+        _showConfetti = true;
+        _lastConfettiDate = today;
+      });
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          setState(() {
+            _showConfetti = false;
+          });
+        }
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -52,9 +79,13 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
           final dueHabits = habits.where((habit) => 
             habit.isDueOn(today)
           ).toList();
-          final allCompleted = dueHabits.isNotEmpty && dueHabits.every((h) => h.isDone);
           
           if (dueHabits.isEmpty) {
+            // Reset confetti for a new day if no habits
+            if (_lastConfettiDate != null && (_lastConfettiDate!.year != today.year || _lastConfettiDate!.month != today.month || _lastConfettiDate!.day != today.day)) {
+              _lastConfettiDate = null;
+              _showConfetti = false;
+            }
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -137,9 +168,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                               child: HabitCard(
                                 habit: habit,
                                 showCheckbox: true,
-                                onToggle: () {
-                                  ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                                },
+                                onToggle: () => _handleToggleHabit(habit, dueHabits),
                               ),
                             );
                           },
@@ -221,7 +250,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                     ),
                 ],
               ),
-              CelebrationConfetti(show: allCompleted),
+              CelebrationConfetti(show: _showConfetti),
             ],
           );
         },
