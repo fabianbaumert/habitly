@@ -76,15 +76,18 @@ class HomeScreen extends ConsumerWidget {
             );
           }
 
+          // Sort habits by createdAt descending (newest first)
+          final sortedHabits = [...habits]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Removed the 'Your Habits' sub-headline
               Expanded(
                 child: ListView.builder(
-                  itemCount: habits.length,
+                  itemCount: sortedHabits.length,
                   itemBuilder: (context, index) {
-                    final habit = habits[index];
+                    final habit = sortedHabits[index];
                     return InkWell(
                       onTap: () {
                         // Navigate to habit detail screen when tapped
