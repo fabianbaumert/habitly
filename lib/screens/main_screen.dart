@@ -5,6 +5,7 @@ import 'package:habitly/screens/calendar_screen.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 import 'package:habitly/screens/habit_form_screen.dart'; // Import for habit form
 import 'package:habitly/screens/home_screen.dart';
+import 'package:habitly/screens/today_screen.dart';
 import 'package:habitly/screens/account_screen.dart';
 
 class MainScreen extends ConsumerWidget {
@@ -21,6 +22,8 @@ class MainScreen extends ConsumerWidget {
       switch (currentScreen) {
         case NavigationScreen.home:
           return const HomeScreen(showDrawer: false);
+        case NavigationScreen.today:
+          return const TodayScreen(showDrawer: false);
         case NavigationScreen.calendar:
           return const CalendarScreen(showDrawer: false);
         case NavigationScreen.feedback:
@@ -39,10 +42,15 @@ class MainScreen extends ConsumerWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getNavigationIndex(currentScreen),
         onTap: (index) => _onNavigationTapped(index, notifier),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.today),
+            label: 'Today',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
@@ -62,10 +70,12 @@ class MainScreen extends ConsumerWidget {
     switch (screen) {
       case NavigationScreen.home:
         return 0;
-      case NavigationScreen.calendar:
+      case NavigationScreen.today:
         return 1;
-      case NavigationScreen.account:
+      case NavigationScreen.calendar:
         return 2;
+      case NavigationScreen.account:
+        return 3;
       default:
         return 0;
     }
@@ -78,18 +88,21 @@ class MainScreen extends ConsumerWidget {
         notifier.setScreen(NavigationScreen.home);
         break;
       case 1:
-        notifier.setScreen(NavigationScreen.calendar);
+        notifier.setScreen(NavigationScreen.today);
         break;
       case 2:
+        notifier.setScreen(NavigationScreen.calendar);
+        break;
+      case 3:
         notifier.setScreen(NavigationScreen.account);
         break;
     }
   }
   
-  // Build the floating action button (only on home screen)
+  // Build the floating action button (only on Home and Today screens)
   Widget? _buildFloatingActionButton(BuildContext context, NavigationScreen currentScreen) {
-    // Only show the "Add Habit" button on the Home screen
-    if (currentScreen == NavigationScreen.home) {
+    // Show the "Add Habit" button on the Home and Today screens
+    if (currentScreen == NavigationScreen.home || currentScreen == NavigationScreen.today) {
       return FloatingActionButton(
         onPressed: () {
           Navigator.push(

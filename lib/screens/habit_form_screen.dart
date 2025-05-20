@@ -4,7 +4,9 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitly/models/habit.dart';
+import 'package:habitly/models/frequency_data.dart';
 import 'package:habitly/services/logger_service.dart';
+import 'package:habitly/widgets/frequency_selector.dart';
 
 class HabitFormScreen extends ConsumerStatefulWidget {
   final Habit? existingHabit;
@@ -26,6 +28,14 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   bool _isLoading = false;
   String _testMessage = '';
   bool get _isEditMode => widget.existingHabit != null;
+  
+  // Frequency settings
+  FrequencyType _frequencyType = FrequencyType.daily;
+  List<DayOfWeek>? _specificDays;
+  int? _dayOfWeek;
+  int? _dayOfMonth;
+  int? _month;
+  int? _customInterval;
 
   @override
   void initState() {
@@ -35,6 +45,14 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     if (_isEditMode) {
       _nameController.text = widget.existingHabit!.name;
       _dailyGoalController.text = widget.existingHabit!.dailyGoal ?? '';
+      
+      // Initialize frequency settings from existing habit
+      _frequencyType = widget.existingHabit!.frequencyType;
+      _specificDays = widget.existingHabit!.specificDays;
+      _dayOfWeek = widget.existingHabit!.dayOfWeek;
+      _dayOfMonth = widget.existingHabit!.dayOfMonth;
+      _month = widget.existingHabit!.month;
+      _customInterval = widget.existingHabit!.customInterval;
     } else {
       // Only test Firebase connection in create mode
       _testFirebaseConnection();
@@ -76,6 +94,25 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     super.dispose();
   }
 
+  // Handle frequency changes
+  void _handleFrequencyChanged({
+    required FrequencyType frequencyType,
+    List<DayOfWeek>? specificDays,
+    int? dayOfWeek,
+    int? dayOfMonth,
+    int? month,
+    int? customInterval,
+  }) {
+    setState(() {
+      _frequencyType = frequencyType;
+      _specificDays = specificDays;
+      _dayOfWeek = dayOfWeek;
+      _dayOfMonth = dayOfMonth;
+      _month = month;
+      _customInterval = customInterval;
+    });
+  }
+
   // Save the habit
   Future<void> _saveHabit() async {
     if (!_formKey.currentState!.validate()) {
@@ -100,6 +137,12 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           dailyGoal: _dailyGoalController.text.trim().isNotEmpty
               ? _dailyGoalController.text.trim()
               : null,
+          frequencyType: _frequencyType,
+          specificDays: _specificDays,
+          dayOfWeek: _dayOfWeek,
+          dayOfMonth: _dayOfMonth,
+          month: _month,
+          customInterval: _customInterval,
         );
         
         // Update habit through provider
@@ -122,6 +165,12 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           isDone: false,
           createdAt: DateTime.now(),
           userId: user.uid,
+          frequencyType: _frequencyType,
+          specificDays: _specificDays,
+          dayOfWeek: _dayOfWeek,
+          dayOfMonth: _dayOfMonth,
+          month: _month,
+          customInterval: _customInterval,
         );
 
         // Add the habit using the provider
@@ -200,6 +249,18 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
                   hintText: 'e.g., 8 glasses, 30 minutes, 10 pages',
                   border: OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Frequency Selector
+              FrequencySelector(
+                initialFrequencyType: _frequencyType,
+                initialSpecificDays: _specificDays,
+                initialDayOfWeek: _dayOfWeek,
+                initialDayOfMonth: _dayOfMonth,
+                initialMonth: _month,
+                initialCustomInterval: _customInterval,
+                onFrequencyChanged: _handleFrequencyChanged,
               ),
               const SizedBox(height: 32),
               
