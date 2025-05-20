@@ -96,7 +96,6 @@ class HabitCard extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.blueGrey[400],
-                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ),
