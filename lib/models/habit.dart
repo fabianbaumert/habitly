@@ -95,6 +95,11 @@ class Habit {
           .toList();
     }
 
+    // --- Fix: If frequencyType is weekly but no specificDays, fallback to daily ---
+    if (frequency == FrequencyType.weekly && (specificDays == null || specificDays.isEmpty)) {
+      frequency = FrequencyType.daily;
+    }
+
     return Habit(
       id: doc.id,
       name: data['name'] ?? '',

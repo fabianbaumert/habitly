@@ -24,6 +24,12 @@ class HiveHabit {
   @HiveField(6)
   final String userId;
 
+  @HiveField(7)
+  final int frequencyTypeIndex;
+
+  @HiveField(8)
+  final List<int>? specificDays;
+
   HiveHabit({
     required this.id,
     required this.name,
@@ -31,6 +37,8 @@ class HiveHabit {
     this.isDone = false,
     required this.createdAt,
     required this.userId,
+    this.frequencyTypeIndex = 0,
+    this.specificDays,
   });
 
   // Convert from Habit model to HiveHabit
@@ -42,6 +50,8 @@ class HiveHabit {
       isDone: habit.isDone,
       createdAt: habit.createdAt,
       userId: habit.userId,
+      frequencyTypeIndex: habit.frequencyType.index,
+      specificDays: habit.specificDays?.map((d) => d.value).toList(),
     );
   }
 
@@ -54,6 +64,8 @@ class HiveHabit {
       isDone: isDone,
       createdAt: createdAt,
       userId: userId,
+      frequencyType: FrequencyType.values[frequencyTypeIndex],
+      specificDays: specificDays?.map((v) => DayOfWeek.fromInt(v)).toList(),
     );
   }
 }

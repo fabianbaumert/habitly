@@ -128,7 +128,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           description: _descriptionController.text.trim().isNotEmpty
               ? _descriptionController.text.trim()
               : null,
-          frequencyType: _frequencyType,
+          frequencyType: _frequencyType, // Ensure this is set from the current state
           specificDays: _specificDays,
           dayOfMonth: _dayOfMonth,
           month: _month,
@@ -154,7 +154,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           isDone: false,
           createdAt: DateTime.now(),
           userId: user.uid,
-          frequencyType: _frequencyType,
+          frequencyType: _frequencyType, // Ensure this is set from the current state
           specificDays: _specificDays,
           dayOfMonth: _dayOfMonth,
           month: _month,

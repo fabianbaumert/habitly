@@ -23,13 +23,15 @@ class HiveHabitAdapter extends TypeAdapter<HiveHabit> {
       isDone: fields[4] as bool,
       createdAt: fields[5] as DateTime,
       userId: fields[6] as String,
+      frequencyTypeIndex: fields[7] as int,
+      specificDays: (fields[8] as List?)?.cast<int>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, HiveHabit obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class HiveHabitAdapter extends TypeAdapter<HiveHabit> {
       ..writeByte(5)
       ..write(obj.createdAt)
       ..writeByte(6)
-      ..write(obj.userId);
+      ..write(obj.userId)
+      ..writeByte(7)
+      ..write(obj.frequencyTypeIndex)
+      ..writeByte(8)
+      ..write(obj.specificDays);
   }
 
   @override
