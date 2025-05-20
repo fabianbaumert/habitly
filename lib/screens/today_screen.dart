@@ -4,6 +4,7 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/widgets/habit_card.dart';
 import 'package:habitly/screens/habit_detail_screen.dart';
+import 'package:habitly/widgets/celebration_confetti.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   final bool showDrawer;
@@ -51,6 +52,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
           final dueHabits = habits.where((habit) => 
             habit.isDueOn(today)
           ).toList();
+          final allCompleted = dueHabits.isNotEmpty && dueHabits.every((h) => h.isDone);
           
           if (dueHabits.isEmpty) {
             return const Center(
@@ -84,137 +86,142 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
           final todoHabits = dueHabits.where((h) => !h.isDone).toList();
           final completedHabits = dueHabits.where((h) => h.isDone).toList();
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Stack(
             children: [
-              // To-do section
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'To Do',
-                      style: Theme.of(context).textTheme.titleLarge,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // To-do section
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'To Do',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        Text(
+                          '${todoHabits.length} remaining',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${todoHabits.length} remaining',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // To-do list
-              Expanded(
-                child: todoHabits.isEmpty 
-                  ? const Center(
-                      child: Text(
-                        'Nothing left to do today!',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: todoHabits.length,
-                      itemBuilder: (context, index) {
-                        final habit = todoHabits[index];
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => HabitDetailScreen(habit: habit),
+                  ),
+                  
+                  // To-do list
+                  Expanded(
+                    child: todoHabits.isEmpty 
+                      ? const Center(
+                          child: Text(
+                            'Nothing left to do today!',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: todoHabits.length,
+                          itemBuilder: (context, index) {
+                            final habit = todoHabits[index];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HabitDetailScreen(habit: habit),
+                                  ),
+                                );
+                              },
+                              child: HabitCard(
+                                habit: habit,
+                                showCheckbox: true,
+                                onToggle: () {
+                                  ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                                },
                               ),
                             );
                           },
-                          child: HabitCard(
-                            habit: habit,
-                            showCheckbox: true,
-                            onToggle: () {
-                              ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-              ),
-              
-              // Completed section header with toggle
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _showCompleted = !_showCompleted;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Completed',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Row(
+                        ),
+                  ),
+                  
+                  // Completed section header with toggle
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _showCompleted = !_showCompleted;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${completedHabits.length} habits',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            'Completed',
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
-                          Icon(
-                            _showCompleted 
-                              ? Icons.keyboard_arrow_up 
-                              : Icons.keyboard_arrow_down,
-                            color: Colors.grey,
+                          Row(
+                            children: [
+                              Text(
+                                '${completedHabits.length} habits',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Icon(
+                                _showCompleted 
+                                  ? Icons.keyboard_arrow_up 
+                                  : Icons.keyboard_arrow_down,
+                                color: Colors.grey,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              
-              // Completed list (collapsible)
-              if (_showCompleted)
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.3,
-                  child: completedHabits.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No completed habits yet',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: completedHabits.length,
-                        itemBuilder: (context, index) {
-                          final habit = completedHabits[index];
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => HabitDetailScreen(habit: habit),
+                  
+                  // Completed list (collapsible)
+                  if (_showCompleted)
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: completedHabits.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No completed habits yet',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: completedHabits.length,
+                            itemBuilder: (context, index) {
+                              final habit = completedHabits[index];
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HabitDetailScreen(habit: habit),
+                                    ),
+                                  );
+                                },
+                                child: HabitCard(
+                                  habit: habit,
+                                  showCheckbox: true,
+                                  onToggle: () {
+                                    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                                  },
                                 ),
                               );
                             },
-                            child: HabitCard(
-                              habit: habit,
-                              showCheckbox: true,
-                              onToggle: () {
-                                ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                ),
+                          ),
+                    ),
+                ],
+              ),
+              CelebrationConfetti(show: allCompleted),
             ],
           );
         },
