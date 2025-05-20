@@ -1,5 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Defines the type of frequency for habits
+enum FrequencyType {
+  daily,
+  specificDays,
+  weekly,
+  monthly,
+  yearly,
+  custom
+}
+
+/// Represents days of the week (starting with Monday = 1 to match DateTime.weekday)
+enum DayOfWeek {
+  monday(1),
+  tuesday(2),
+  wednesday(3),
+  thursday(4),
+  friday(5),
+  saturday(6),
+  sunday(7);
+  
+  final int value;
+  const DayOfWeek(this.value);
+  
+  static DayOfWeek fromInt(int value) {
+    return DayOfWeek.values.firstWhere((day) => day.value == value);
+  }
+}
+
 // This class represents a habit with its properties
 class Habit {
   String id;
@@ -8,6 +36,15 @@ class Habit {
   bool isDone;
   DateTime createdAt;
   String userId;
+  
+  // Frequency related properties
+  FrequencyType frequencyType;
+  List<DayOfWeek>? specificDays; // For weekday selection (Mon/Wed/Fri)
+  int? dayOfWeek;        // For weekly frequency (1-7, represents Monday-Sunday)
+  int? dayOfMonth;       // For monthly frequency (1-31)
+  int? month;            // For yearly frequency (1-12)
+  int? customInterval;   // For custom interval (every X days)
+  DateTime? lastCompletedDate; // To track the last completion
 
   Habit({
     required this.id,
@@ -16,6 +53,13 @@ class Habit {
     this.isDone = false,
     required this.createdAt,
     required this.userId,
+    this.frequencyType = FrequencyType.daily,
+    this.specificDays,
+    this.dayOfWeek,
+    this.dayOfMonth,
+    this.month,
+    this.customInterval,
+    this.lastCompletedDate,
   });
 
   // Convert Habit to a map for Firestore
@@ -27,12 +71,36 @@ class Habit {
       'isDone': isDone,
       'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
+      'frequencyType': frequencyType.name,
+      'specificDays': specificDays?.map((day) => day.value).toList(),
+      'dayOfWeek': dayOfWeek,
+      'dayOfMonth': dayOfMonth,
+      'month': month,
+      'customInterval': customInterval,
+      'lastCompletedDate': lastCompletedDate != null ? Timestamp.fromDate(lastCompletedDate!) : null,
     };
   }
 
   // Create a Habit from a Firestore document
   factory Habit.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+    // Parse frequency type
+    FrequencyType frequency = FrequencyType.daily;
+    if (data['frequencyType'] != null) {
+      frequency = FrequencyType.values.firstWhere(
+        (e) => e.name == data['frequencyType'],
+        orElse: () => FrequencyType.daily,
+      );
+    }
+
+    // Parse specific days
+    List<DayOfWeek>? specificDays;
+    if (data['specificDays'] != null) {
+      specificDays = (data['specificDays'] as List)
+          .map((day) => DayOfWeek.fromInt(day))
+          .toList();
+    }
 
     return Habit(
       id: doc.id,
@@ -41,6 +109,15 @@ class Habit {
       isDone: data['isDone'] ?? false,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
+      frequencyType: frequency,
+      specificDays: specificDays,
+      dayOfWeek: data['dayOfWeek'],
+      dayOfMonth: data['dayOfMonth'],
+      month: data['month'],
+      customInterval: data['customInterval'],
+      lastCompletedDate: data['lastCompletedDate'] != null 
+          ? (data['lastCompletedDate'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -52,6 +129,13 @@ class Habit {
     bool? isDone,
     DateTime? createdAt,
     String? userId,
+    FrequencyType? frequencyType,
+    List<DayOfWeek>? specificDays,
+    int? dayOfWeek,
+    int? dayOfMonth,
+    int? month,
+    int? customInterval,
+    DateTime? lastCompletedDate,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -60,6 +144,93 @@ class Habit {
       isDone: isDone ?? this.isDone,
       createdAt: createdAt ?? this.createdAt,
       userId: userId ?? this.userId,
+      frequencyType: frequencyType ?? this.frequencyType,
+      specificDays: specificDays ?? this.specificDays,
+      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      month: month ?? this.month,
+      customInterval: customInterval ?? this.customInterval,
+      lastCompletedDate: lastCompletedDate ?? this.lastCompletedDate,
     );
+  }
+  
+  /// Checks if the habit is due on a specific date
+  bool isDueOn(DateTime date) {
+    // If the habit was completed today, it's not due again
+    if (lastCompletedDate != null &&
+        lastCompletedDate!.year == date.year &&
+        lastCompletedDate!.month == date.month &&
+        lastCompletedDate!.day == date.day) {
+      return false;
+    }
+    
+    switch (frequencyType) {
+      case FrequencyType.daily:
+        return true;
+        
+      case FrequencyType.specificDays:
+        if (specificDays == null || specificDays!.isEmpty) return false;
+        // Check if today's weekday is in the specificDays list
+        return specificDays!.any((day) => day.value == date.weekday);
+        
+      case FrequencyType.weekly:
+        if (dayOfWeek == null) return false;
+        return date.weekday == dayOfWeek;
+        
+      case FrequencyType.monthly:
+        if (dayOfMonth == null) return false;
+        // Handle months with fewer days than the selected day
+        final lastDayOfMonth = DateTime(date.year, date.month + 1, 0).day;
+        final actualDayOfMonth = dayOfMonth! > lastDayOfMonth ? lastDayOfMonth : dayOfMonth!;
+        return date.day == actualDayOfMonth;
+        
+      case FrequencyType.yearly:
+        if (dayOfMonth == null || month == null) return false;
+        return date.day == dayOfMonth && date.month == month;
+        
+      case FrequencyType.custom:
+        if (customInterval == null || customInterval! <= 0 || lastCompletedDate == null) return true;
+        // Calculate days since last completion
+        final difference = date.difference(lastCompletedDate!).inDays;
+        return difference >= customInterval!;
+    }
+  }
+  
+  /// Returns a human-readable description of the habit frequency
+  String getFrequencyDescription() {
+    switch (frequencyType) {
+      case FrequencyType.daily:
+        return 'Daily';
+        
+      case FrequencyType.specificDays:
+        if (specificDays == null || specificDays!.isEmpty) return 'No days selected';
+        final dayNames = specificDays!.map((day) => day.name.substring(0, 3)).join(', ');
+        return specificDays!.length == 1 
+            ? 'Every ${specificDays![0].name}' 
+            : 'Every $dayNames';
+        
+      case FrequencyType.weekly:
+        if (dayOfWeek == null) return 'Weekly';
+        final day = DayOfWeek.fromInt(dayOfWeek!);
+        return 'Weekly on ${day.name}';
+        
+      case FrequencyType.monthly:
+        if (dayOfMonth == null) return 'Monthly';
+        return 'Monthly on day $dayOfMonth';
+        
+      case FrequencyType.yearly:
+        if (dayOfMonth == null || month == null) return 'Yearly';
+        final monthName = [
+          'January', 'February', 'March', 'April', 'May', 'June', 
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ][month! - 1];
+        return 'Yearly on $monthName $dayOfMonth';
+        
+      case FrequencyType.custom:
+        if (customInterval == null || customInterval! <= 0) return 'Custom interval';
+        return customInterval == 1 
+            ? 'Every day' 
+            : 'Every $customInterval days';
+    }
   }
 }
