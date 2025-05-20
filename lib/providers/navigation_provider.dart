@@ -10,7 +10,7 @@ enum NavigationScreen {
 }
 
 class NavigationNotifier extends StateNotifier<NavigationScreen> {
-  NavigationNotifier() : super(NavigationScreen.home);
+  NavigationNotifier() : super(NavigationScreen.today); // Set initial screen to Today
 
   void setScreen(NavigationScreen screen) {
     state = screen;
