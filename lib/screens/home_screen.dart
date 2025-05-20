@@ -25,7 +25,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Habitly'),
+        title: const Text('Habits'),
       ),
       body: habitsAsync.when(
         loading: () => const Center(
@@ -79,13 +79,7 @@ class HomeScreen extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Your Habits',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
+              // Removed the 'Your Habits' sub-headline
               Expanded(
                 child: ListView.builder(
                   itemCount: habits.length,

@@ -194,7 +194,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Habit Calendar'),
+        title: const Text('Calendar'),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
