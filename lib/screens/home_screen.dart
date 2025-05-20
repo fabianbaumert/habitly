@@ -81,21 +81,9 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Your Habits',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(
-                      '${habits.where((h) => h.isDone).length}/${habits.length} completed',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'Your Habits',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Expanded(
