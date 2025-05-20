@@ -6,6 +6,7 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:habitly/widgets/habit_card.dart';
 
 // Create a provider to track calendar update triggers
 final calendarUpdateProvider = StateProvider<int>((ref) => 0);
@@ -304,34 +305,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   
   Widget _buildSelectedDayHabits() {
     final habitsAsync = ref.watch(habitsProvider);
-    
-    // Get current date for comparison (for disabling future date interactions)
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
     final isFutureDate = selectedDate.isAfter(today);
-    
-    // Debug print to track selected day
-    debugPrint('Selected day: ${_selectedDay.toString()}, Is Future: $isFutureDate');
-    
+
     return habitsAsync.when(
       data: (habits) {
-        // Sort habits by creation date (oldest first)
-        habits.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        
-        // Debug - log the habits and their creation dates
-        debugPrint('Total habits: ${habits.length}');
-        
-        // Only show habits that existed on or before the selected day
-        final selectedDayHabits = habits.where(
-          (habit) {
-            final habitDate = DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day);
-            return !habitDate.isAfter(selectedDate);
-          }
-        ).toList();
-        
-        debugPrint('Filtered habits: ${selectedDayHabits.length}');
-        
+        // Only show habits that are scheduled for the selected date
+        final selectedDayHabits = habits.where((habit) => habit.isDueOn(selectedDate)).toList();
         if (selectedDayHabits.isEmpty) {
           return const Center(
             child: Text(
@@ -340,12 +322,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           );
         }
-        
         return FutureBuilder<Map<String, bool>>(
           future: ref.read(habitHistoryProvider(_selectedDay).future),
           builder: (context, snapshot) {
             final habitHistory = snapshot.data ?? {};
-            
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -365,94 +345,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     itemBuilder: (context, index) {
                       final habit = selectedDayHabits[index];
                       final isCompleted = _getCompletionStatus(habit.id, _selectedDay, habitHistory);
-                      
-                      // Text color based on future date status
-                      final textColor = isFutureDate ? Colors.grey : null;
-                      
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Icon(
-                                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                                color: isFutureDate 
-                                  ? Colors.grey 
-                                  : (isCompleted ? Colors.green : Colors.grey),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      habit.name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                    if (habit.description != null && habit.description!.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text(
-                                          'Description: ${habit.description}',
-                                          style: TextStyle(
-                                            color: isFutureDate ? Colors.grey[400] : Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              if (isFutureDate)
-                                // Show disabled button for future dates
-                                TextButton.icon(
-                                  icon: Icon(
-                                    isCompleted ? Icons.undo : Icons.check,
-                                    color: Colors.grey,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    isCompleted ? 'Undo' : 'Complete',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  onPressed: null, // Disabled
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  ),
-                                )
-                              else
-                                // Active button for past or current dates
-                                TextButton.icon(
-                                  icon: Icon(
-                                    isCompleted ? Icons.undo : Icons.check,
-                                    color: isCompleted ? Colors.orange : Colors.green,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    isCompleted ? 'Undo' : 'Complete',
-                                    style: TextStyle(
-                                      color: isCompleted ? Colors.orange : Colors.green,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    _toggleHabitCompletion(habit, _selectedDay, isCompleted);
-                                  },
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                      return HabitCard(
+                        habit: habit,
+                        isCompleted: isCompleted,
+                        isFutureDate: isFutureDate,
+                        onToggle: isFutureDate
+                            ? null
+                            : () => _toggleHabitCompletion(habit, _selectedDay, isCompleted),
                       );
                     },
                   ),
