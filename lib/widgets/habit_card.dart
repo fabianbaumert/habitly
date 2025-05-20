@@ -82,7 +82,7 @@ class HabitCard extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            'Description: ${habit.description}',
+                            habit.description!,
                             style: TextStyle(
                               fontSize: 14,
                               color: completed ? Colors.grey : Theme.of(context).textTheme.bodySmall?.color,

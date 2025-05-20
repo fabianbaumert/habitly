@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
-import 'package:habitly/screens/habit_detail_screen.dart';
+import 'package:habitly/widgets/habit_card.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   final bool showDrawer;
@@ -120,7 +119,15 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                   : ListView.builder(
                       itemCount: todoHabits.length,
                       itemBuilder: (context, index) {
-                        return _buildHabitItem(context, todoHabits[index]);
+                        final habit = todoHabits[index];
+                        return HabitCard(
+                          habit: habit,
+                          showCheckbox: true,
+                          onToggle: () {
+                            ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                          },
+                          // isCompleted and isFutureDate use defaults
+                        );
                       },
                     ),
               ),
@@ -177,100 +184,20 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                     : ListView.builder(
                         itemCount: completedHabits.length,
                         itemBuilder: (context, index) {
-                          return _buildHabitItem(context, completedHabits[index]);
+                          final habit = completedHabits[index];
+                          return HabitCard(
+                            habit: habit,
+                            showCheckbox: true,
+                            onToggle: () {
+                              ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                            },
+                          );
                         },
                       ),
                 ),
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildHabitItem(BuildContext context, Habit habit) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-      child: InkWell(
-        onTap: () {
-          // Navigate to habit detail when tapped
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HabitDetailScreen(habit: habit),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              // Checkbox for marking completion
-              InkWell(
-                onTap: () {
-                  ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: habit.isDone ? Colors.green : Colors.transparent,
-                    border: Border.all(
-                      color: habit.isDone ? Colors.green : Colors.grey,
-                      width: 2,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(
-                    Icons.check,
-                    size: 18,
-                    color: habit.isDone ? Colors.white : Colors.transparent,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              
-              // Habit details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      habit.name,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        decoration: habit.isDone ? TextDecoration.lineThrough : null,
-                        color: habit.isDone ? Colors.grey : null,
-                      ),
-                    ),
-                    if (habit.description != null && habit.description!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Description: ${habit.description}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: habit.isDone ? Colors.grey : Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        habit.getFrequencyDescription(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: habit.isDone ? Colors.grey : Colors.blueGrey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
