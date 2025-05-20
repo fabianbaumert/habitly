@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/widgets/habit_card.dart';
+import 'package:habitly/screens/habit_detail_screen.dart';
 
 class TodayScreen extends ConsumerStatefulWidget {
   final bool showDrawer;
@@ -120,13 +121,22 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                       itemCount: todoHabits.length,
                       itemBuilder: (context, index) {
                         final habit = todoHabits[index];
-                        return HabitCard(
-                          habit: habit,
-                          showCheckbox: true,
-                          onToggle: () {
-                            ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HabitDetailScreen(habit: habit),
+                              ),
+                            );
                           },
-                          // isCompleted and isFutureDate use defaults
+                          child: HabitCard(
+                            habit: habit,
+                            showCheckbox: true,
+                            onToggle: () {
+                              ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                            },
+                          ),
                         );
                       },
                     ),
@@ -185,12 +195,22 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                         itemCount: completedHabits.length,
                         itemBuilder: (context, index) {
                           final habit = completedHabits[index];
-                          return HabitCard(
-                            habit: habit,
-                            showCheckbox: true,
-                            onToggle: () {
-                              ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => HabitDetailScreen(habit: habit),
+                                ),
+                              );
                             },
+                            child: HabitCard(
+                              habit: habit,
+                              showCheckbox: true,
+                              onToggle: () {
+                                ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
+                              },
+                            ),
                           );
                         },
                       ),

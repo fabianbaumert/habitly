@@ -7,6 +7,7 @@ import 'package:habitly/providers/navigation_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:habitly/widgets/habit_card.dart';
+import 'package:habitly/screens/habit_detail_screen.dart';
 
 // Create a provider to track calendar update triggers
 final calendarUpdateProvider = StateProvider<int>((ref) => 0);
@@ -345,13 +346,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     itemBuilder: (context, index) {
                       final habit = selectedDayHabits[index];
                       final isCompleted = _getCompletionStatus(habit.id, _selectedDay, habitHistory);
-                      return HabitCard(
-                        habit: habit,
-                        isCompleted: isCompleted,
-                        isFutureDate: isFutureDate,
-                        onToggle: isFutureDate
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => HabitDetailScreen(habit: habit),
+                            ),
+                          );
+                        },
+                        child: HabitCard(
+                          habit: habit,
+                          isCompleted: isCompleted,
+                          isFutureDate: isFutureDate,
+                          onToggle: isFutureDate
                             ? null
                             : () => _toggleHabitCompletion(habit, _selectedDay, isCompleted),
+                        ),
                       );
                     },
                   ),
