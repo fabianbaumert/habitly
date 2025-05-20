@@ -22,7 +22,7 @@ class HabitFormScreen extends ConsumerStatefulWidget {
 class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _dailyGoalController = TextEditingController();
+  final _descriptionController = TextEditingController();
 
   bool _isLoading = false;
   String _testMessage = '';
@@ -42,7 +42,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     // If editing, populate form with existing habit data
     if (_isEditMode) {
       _nameController.text = widget.existingHabit!.name;
-      _dailyGoalController.text = widget.existingHabit!.dailyGoal ?? '';
+      _descriptionController.text = widget.existingHabit!.description ?? '';
       
       // Initialize frequency settings from existing habit
       _frequencyType = widget.existingHabit!.frequencyType;
@@ -87,7 +87,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _dailyGoalController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -129,8 +129,8 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
         // Update existing habit
         final updatedHabit = widget.existingHabit!.copyWith(
           name: _nameController.text.trim(),
-          dailyGoal: _dailyGoalController.text.trim().isNotEmpty
-              ? _dailyGoalController.text.trim()
+          description: _descriptionController.text.trim().isNotEmpty
+              ? _descriptionController.text.trim()
               : null,
           frequencyType: _frequencyType,
           specificDays: _specificDays,
@@ -153,8 +153,8 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
         final newHabit = Habit(
           id: FirebaseFirestore.instance.collection('habits').doc().id,
           name: _nameController.text.trim(),
-          dailyGoal: _dailyGoalController.text.trim().isNotEmpty
-              ? _dailyGoalController.text.trim()
+          description: _descriptionController.text.trim().isNotEmpty
+              ? _descriptionController.text.trim()
               : null,
           isDone: false,
           createdAt: DateTime.now(),
@@ -234,11 +234,11 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Daily Goal (Optional)
+              // Description (Optional)
               TextFormField(
-                controller: _dailyGoalController,
+                controller: _descriptionController,
                 decoration: const InputDecoration(
-                  labelText: 'Daily Goal (Optional)',
+                  labelText: 'Description (Optional)',
                   hintText: 'e.g., 8 glasses, 30 minutes, 10 pages',
                   border: OutlineInputBorder(),
                 ),

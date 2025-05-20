@@ -52,11 +52,11 @@ class HabitCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            if (habit.dailyGoal != null && habit.dailyGoal!.isNotEmpty)
+            if (habit.description != null && habit.description!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  'Goal: ${habit.dailyGoal}',
+                  'Description: ${habit.description}',
                   style: TextStyle(
                     fontSize: 14,
                     color: Theme.of(context).textTheme.bodySmall?.color,

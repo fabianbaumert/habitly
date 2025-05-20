@@ -244,11 +244,11 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                         color: habit.isDone ? Colors.grey : null,
                       ),
                     ),
-                    if (habit.dailyGoal != null && habit.dailyGoal!.isNotEmpty)
+                    if (habit.description != null && habit.description!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'Goal: ${habit.dailyGoal}',
+                          'Description: ${habit.description}',
                           style: TextStyle(
                             fontSize: 14,
                             color: habit.isDone ? Colors.grey : Colors.grey[600],

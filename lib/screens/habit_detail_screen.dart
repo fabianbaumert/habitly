@@ -139,15 +139,15 @@ class HabitDetailScreen extends ConsumerWidget {
             
             const SizedBox(height: 12),
             
-            // Daily goal
-            if (currentHabit.dailyGoal != null && currentHabit.dailyGoal!.isNotEmpty)
+            // Description
+            if (currentHabit.description != null && currentHabit.description!.isNotEmpty)
               Row(
                 children: [
                   const Icon(Icons.flag, color: Colors.blue),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Daily Goal: ${currentHabit.dailyGoal}',
+                      'Description: ${currentHabit.description}',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),

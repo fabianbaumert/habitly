@@ -31,7 +31,7 @@ enum DayOfWeek {
 class Habit {
   String id;
   String name;
-  String? dailyGoal;
+  String? description;
   bool isDone;
   DateTime createdAt;
   String userId;
@@ -47,7 +47,7 @@ class Habit {
   Habit({
     required this.id,
     required this.name,
-    this.dailyGoal,
+    this.description,
     this.isDone = false,
     required this.createdAt,
     required this.userId,
@@ -64,7 +64,7 @@ class Habit {
     return {
       'id': id,
       'name': name,
-      'dailyGoal': dailyGoal,
+      'description': description,
       'isDone': isDone,
       'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
@@ -101,7 +101,7 @@ class Habit {
     return Habit(
       id: doc.id,
       name: data['name'] ?? '',
-      dailyGoal: data['dailyGoal'],
+      description: data['description'],
       isDone: data['isDone'] ?? false,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
@@ -120,7 +120,7 @@ class Habit {
   Habit copyWith({
     String? id,
     String? name,
-    String? dailyGoal,
+    String? description,
     bool? isDone,
     DateTime? createdAt,
     String? userId,
@@ -134,7 +134,7 @@ class Habit {
     return Habit(
       id: id ?? this.id,
       name: name ?? this.name,
-      dailyGoal: dailyGoal ?? this.dailyGoal,
+      description: description ?? this.description,
       isDone: isDone ?? this.isDone,
       createdAt: createdAt ?? this.createdAt,
       userId: userId ?? this.userId,

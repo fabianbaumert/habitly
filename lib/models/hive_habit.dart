@@ -13,7 +13,7 @@ class HiveHabit {
   final String name;
   
   @HiveField(2)
-  final String? dailyGoal;
+  final String? description;
   
   @HiveField(4)
   final bool isDone;
@@ -27,7 +27,7 @@ class HiveHabit {
   HiveHabit({
     required this.id,
     required this.name,
-    this.dailyGoal,
+    this.description,
     this.isDone = false,
     required this.createdAt,
     required this.userId,
@@ -38,7 +38,7 @@ class HiveHabit {
     return HiveHabit(
       id: habit.id,
       name: habit.name,
-      dailyGoal: habit.dailyGoal,
+      description: habit.description,
       isDone: habit.isDone,
       createdAt: habit.createdAt,
       userId: habit.userId,
@@ -50,7 +50,7 @@ class HiveHabit {
     return Habit(
       id: id,
       name: name,
-      dailyGoal: dailyGoal,
+      description: description,
       isDone: isDone,
       createdAt: createdAt,
       userId: userId,
