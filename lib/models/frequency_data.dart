@@ -6,14 +6,12 @@ class FrequencyData {
   final List<DayOfWeek>? specificDays; // Used for weekly selection
   final int? dayOfMonth;
   final int? month;
-  final int? customInterval;
 
   FrequencyData({
     required this.frequencyType,
     this.specificDays,
     this.dayOfMonth,
     this.month,
-    this.customInterval,
   });
 
   /// Create FrequencyData from a Habit
@@ -23,7 +21,6 @@ class FrequencyData {
       specificDays: habit.specificDays,
       dayOfMonth: habit.dayOfMonth,
       month: habit.month,
-      customInterval: habit.customInterval,
     );
   }
 
@@ -34,7 +31,6 @@ class FrequencyData {
       specificDays: specificDays,
       dayOfMonth: dayOfMonth,
       month: month,
-      customInterval: customInterval,
     );
   }
 
@@ -59,11 +55,8 @@ class FrequencyData {
           'July', 'August', 'September', 'October', 'November', 'December'
         ][month! - 1];
         return 'Yearly on $monthName $dayOfMonth';
-      case FrequencyType.custom:
-        if (customInterval == null || customInterval! <= 0) return 'Custom interval';
-        return customInterval == 1 
-            ? 'Every day' 
-            : 'Every $customInterval days';
+      default:
+        return '';
     }
   }
 }

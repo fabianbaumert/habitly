@@ -327,7 +327,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     List<DayOfWeek>? specificDays,
     int? dayOfMonth,
     int? month,
-    int? customInterval,
   }) async {
     try {
       Habit? habitToUpdate;
@@ -342,7 +341,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           specificDays: specificDays,
           dayOfMonth: dayOfMonth, 
           month: month,
-          customInterval: customInterval,
         );
         
         await updateHabit(updatedHabit);

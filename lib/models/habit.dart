@@ -41,7 +41,6 @@ class Habit {
   List<DayOfWeek>? specificDays; // For weekly selection (one or more days)
   int? dayOfMonth;       // For monthly frequency (1-31)
   int? month;            // For yearly frequency (1-12)
-  int? customInterval;   // For custom interval (every X days)
   DateTime? lastCompletedDate; // To track the last completion
 
   Habit({
@@ -55,7 +54,6 @@ class Habit {
     this.specificDays,
     this.dayOfMonth,
     this.month,
-    this.customInterval,
     this.lastCompletedDate,
   });
 
@@ -72,7 +70,6 @@ class Habit {
       'specificDays': specificDays?.map((day) => day.value).toList(),
       'dayOfMonth': dayOfMonth,
       'month': month,
-      'customInterval': customInterval,
       'lastCompletedDate': lastCompletedDate != null ? Timestamp.fromDate(lastCompletedDate!) : null,
     };
   }
@@ -109,7 +106,6 @@ class Habit {
       specificDays: specificDays,
       dayOfMonth: data['dayOfMonth'],
       month: data['month'],
-      customInterval: data['customInterval'],
       lastCompletedDate: data['lastCompletedDate'] != null 
           ? (data['lastCompletedDate'] as Timestamp).toDate()
           : null,
@@ -128,7 +124,6 @@ class Habit {
     List<DayOfWeek>? specificDays,
     int? dayOfMonth,
     int? month,
-    int? customInterval,
     DateTime? lastCompletedDate,
   }) {
     return Habit(
@@ -142,7 +137,6 @@ class Habit {
       specificDays: specificDays ?? this.specificDays,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       month: month ?? this.month,
-      customInterval: customInterval ?? this.customInterval,
       lastCompletedDate: lastCompletedDate ?? this.lastCompletedDate,
     );
   }
@@ -176,10 +170,7 @@ class Habit {
         if (dayOfMonth == null || month == null) return false;
         return date.day == dayOfMonth && date.month == month;
       case FrequencyType.custom:
-        if (customInterval == null || customInterval! <= 0 || lastCompletedDate == null) return true;
-        // Calculate days since last completion
-        final difference = date.difference(lastCompletedDate!).inDays;
-        return difference >= customInterval!;
+        return false;
     }
   }
   
@@ -205,10 +196,7 @@ class Habit {
         ][month! - 1];
         return 'Yearly on $monthName $dayOfMonth';
       case FrequencyType.custom:
-        if (customInterval == null || customInterval! <= 0) return 'Custom interval';
-        return customInterval == 1 
-            ? 'Every day' 
-            : 'Every $customInterval days';
+        return 'Custom interval';
     }
   }
 }

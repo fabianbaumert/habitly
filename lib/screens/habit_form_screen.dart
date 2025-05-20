@@ -33,7 +33,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   List<DayOfWeek>? _specificDays;
   int? _dayOfMonth;
   int? _month;
-  int? _customInterval;
 
   @override
   void initState() {
@@ -49,7 +48,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
       _specificDays = widget.existingHabit!.specificDays;
       _dayOfMonth = widget.existingHabit!.dayOfMonth;
       _month = widget.existingHabit!.month;
-      _customInterval = widget.existingHabit!.customInterval;
     } else {
       // Only test Firebase connection in create mode
       _testFirebaseConnection();
@@ -97,14 +95,12 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     List<DayOfWeek>? specificDays,
     int? dayOfMonth,
     int? month,
-    int? customInterval,
   }) {
     setState(() {
       _frequencyType = frequencyType;
       _specificDays = specificDays;
       _dayOfMonth = dayOfMonth;
       _month = month;
-      _customInterval = customInterval;
     });
   }
 
@@ -136,7 +132,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           specificDays: _specificDays,
           dayOfMonth: _dayOfMonth,
           month: _month,
-          customInterval: _customInterval,
         );
         
         // Update habit through provider
@@ -163,7 +158,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           specificDays: _specificDays,
           dayOfMonth: _dayOfMonth,
           month: _month,
-          customInterval: _customInterval,
         );
 
         // Add the habit using the provider
@@ -251,7 +245,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
                 initialSpecificDays: _specificDays,
                 initialDayOfMonth: _dayOfMonth,
                 initialMonth: _month,
-                initialCustomInterval: _customInterval,
                 onFrequencyChanged: _handleFrequencyChanged,
               ),
               const SizedBox(height: 32),

@@ -15,16 +15,12 @@ class FrequencySelector extends StatefulWidget {
   /// The current month (for existing yearly habits)
   final int? initialMonth;
   
-  /// The current custom interval (for existing custom habits)
-  final int? initialCustomInterval;
-  
   /// Callback when frequency settings change
   final void Function({
     required FrequencyType frequencyType,
     List<DayOfWeek>? specificDays,
     int? dayOfMonth,
     int? month,
-    int? customInterval,
   }) onFrequencyChanged;
 
   const FrequencySelector({
@@ -33,7 +29,6 @@ class FrequencySelector extends StatefulWidget {
     this.initialSpecificDays,
     this.initialDayOfMonth,
     this.initialMonth,
-    this.initialCustomInterval,
     required this.onFrequencyChanged,
   }) : super(key: key);
 
@@ -46,7 +41,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
   List<DayOfWeek> _specificDays = [];
   int? _dayOfMonth;
   int? _month;
-  int? _customInterval;
 
   @override
   void initState() {
@@ -55,7 +49,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     _specificDays = widget.initialSpecificDays ?? [];
     _dayOfMonth = widget.initialDayOfMonth;
     _month = widget.initialMonth;
-    _customInterval = widget.initialCustomInterval ?? 1;
   }
 
   void _notifyFrequencyChanged() {
@@ -64,7 +57,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
       specificDays: _specificDays.isNotEmpty ? _specificDays : null,
       dayOfMonth: _dayOfMonth,
       month: _month,
-      customInterval: _customInterval,
     );
   }
 
@@ -89,7 +81,9 @@ class _FrequencySelectorState extends State<FrequencySelector> {
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          items: FrequencyType.values.map((type) {
+          items: FrequencyType.values
+              .where((type) => type != FrequencyType.custom)
+              .map((type) {
             return DropdownMenuItem<FrequencyType>(
               value: type,
               child: Text(_getFrequencyTypeLabel(type)),
@@ -123,8 +117,8 @@ class _FrequencySelectorState extends State<FrequencySelector> {
         return 'Monthly on a specific date';
       case FrequencyType.yearly:
         return 'Yearly on a specific date';
-      case FrequencyType.custom:
-        return 'Custom interval (every X days)';
+      default:
+        return '';
     }
   }
 
@@ -138,8 +132,8 @@ class _FrequencySelectorState extends State<FrequencySelector> {
         return _buildMonthlySelector();
       case FrequencyType.yearly:
         return _buildYearlySelector();
-      case FrequencyType.custom:
-        return _buildCustomIntervalSelector();
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -266,48 +260,13 @@ class _FrequencySelectorState extends State<FrequencySelector> {
                       setState(() {
                         _dayOfMonth = day;
                       });
-                      _notifyFrequencyChanged();
+                        _notifyFrequencyChanged();
                     }
                   },
                 ),
               );
             },
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCustomIntervalSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Repeat every:'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                initialValue: (_customInterval ?? 1).toString(),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                onChanged: (value) {
-                  final interval = int.tryParse(value);
-                  if (interval != null && interval > 0) {
-                    setState(() {
-                      _customInterval = interval;
-                    });
-                    _notifyFrequencyChanged();
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text('days'),
-          ],
         ),
       ],
     );
