@@ -6,11 +6,8 @@ class FrequencySelector extends StatefulWidget {
   /// The current frequency type (for existing habits)
   final FrequencyType initialFrequencyType;
   
-  /// The current specific days selection (for existing habits)
+  /// The current specific days selection (for existing habits, now used for weekly)
   final List<DayOfWeek>? initialSpecificDays;
-  
-  /// The current day of week (for existing weekly habits)
-  final int? initialDayOfWeek;
   
   /// The current day of month (for existing monthly/yearly habits)
   final int? initialDayOfMonth;
@@ -25,7 +22,6 @@ class FrequencySelector extends StatefulWidget {
   final void Function({
     required FrequencyType frequencyType,
     List<DayOfWeek>? specificDays,
-    int? dayOfWeek,
     int? dayOfMonth,
     int? month,
     int? customInterval,
@@ -35,7 +31,6 @@ class FrequencySelector extends StatefulWidget {
     Key? key,
     this.initialFrequencyType = FrequencyType.daily,
     this.initialSpecificDays,
-    this.initialDayOfWeek,
     this.initialDayOfMonth,
     this.initialMonth,
     this.initialCustomInterval,
@@ -49,7 +44,6 @@ class FrequencySelector extends StatefulWidget {
 class _FrequencySelectorState extends State<FrequencySelector> {
   late FrequencyType _frequencyType;
   List<DayOfWeek> _specificDays = [];
-  int? _dayOfWeek;
   int? _dayOfMonth;
   int? _month;
   int? _customInterval;
@@ -59,7 +53,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     super.initState();
     _frequencyType = widget.initialFrequencyType;
     _specificDays = widget.initialSpecificDays ?? [];
-    _dayOfWeek = widget.initialDayOfWeek;
     _dayOfMonth = widget.initialDayOfMonth;
     _month = widget.initialMonth;
     _customInterval = widget.initialCustomInterval ?? 1;
@@ -69,7 +62,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     widget.onFrequencyChanged(
       frequencyType: _frequencyType,
       specificDays: _specificDays.isNotEmpty ? _specificDays : null,
-      dayOfWeek: _dayOfWeek,
       dayOfMonth: _dayOfMonth,
       month: _month,
       customInterval: _customInterval,
@@ -125,10 +117,8 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     switch (type) {
       case FrequencyType.daily:
         return 'Daily';
-      case FrequencyType.specificDays:
-        return 'Specific days of the week';
       case FrequencyType.weekly:
-        return 'Weekly on a specific day';
+        return 'Weekly (select one or more days)';
       case FrequencyType.monthly:
         return 'Monthly on a specific date';
       case FrequencyType.yearly:
@@ -142,25 +132,18 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     switch (_frequencyType) {
       case FrequencyType.daily:
         return const SizedBox.shrink(); // No additional options for daily
-        
-      case FrequencyType.specificDays:
-        return _buildSpecificDaysSelector();
-        
       case FrequencyType.weekly:
         return _buildWeeklySelector();
-        
       case FrequencyType.monthly:
         return _buildMonthlySelector();
-        
       case FrequencyType.yearly:
         return _buildYearlySelector();
-        
       case FrequencyType.custom:
         return _buildCustomIntervalSelector();
     }
   }
 
-  Widget _buildSpecificDaysSelector() {
+  Widget _buildWeeklySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,34 +165,6 @@ class _FrequencySelectorState extends State<FrequencySelector> {
                   }
                 });
                 _notifyFrequencyChanged();
-              },
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWeeklySelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Select day of week:'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          children: DayOfWeek.values.map((day) {
-            final isSelected = _dayOfWeek == day.value;
-            return ChoiceChip(
-              label: Text(day.name.substring(0, 3)),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() {
-                    _dayOfWeek = day.value;
-                  });
-                  _notifyFrequencyChanged();
-                }
               },
             );
           }).toList(),

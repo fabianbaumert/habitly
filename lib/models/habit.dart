@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Defines the type of frequency for habits
 enum FrequencyType {
   daily,
-  specificDays,
-  weekly,
+  weekly, // Combined frequency type for all weekly patterns
   monthly,
   yearly,
   custom
@@ -39,8 +38,7 @@ class Habit {
   
   // Frequency related properties
   FrequencyType frequencyType;
-  List<DayOfWeek>? specificDays; // For weekday selection (Mon/Wed/Fri)
-  int? dayOfWeek;        // For weekly frequency (1-7, represents Monday-Sunday)
+  List<DayOfWeek>? specificDays; // For weekly selection (one or more days)
   int? dayOfMonth;       // For monthly frequency (1-31)
   int? month;            // For yearly frequency (1-12)
   int? customInterval;   // For custom interval (every X days)
@@ -55,7 +53,6 @@ class Habit {
     required this.userId,
     this.frequencyType = FrequencyType.daily,
     this.specificDays,
-    this.dayOfWeek,
     this.dayOfMonth,
     this.month,
     this.customInterval,
@@ -73,7 +70,6 @@ class Habit {
       'userId': userId,
       'frequencyType': frequencyType.name,
       'specificDays': specificDays?.map((day) => day.value).toList(),
-      'dayOfWeek': dayOfWeek,
       'dayOfMonth': dayOfMonth,
       'month': month,
       'customInterval': customInterval,
@@ -111,7 +107,6 @@ class Habit {
       userId: data['userId'] ?? '',
       frequencyType: frequency,
       specificDays: specificDays,
-      dayOfWeek: data['dayOfWeek'],
       dayOfMonth: data['dayOfMonth'],
       month: data['month'],
       customInterval: data['customInterval'],
@@ -131,7 +126,6 @@ class Habit {
     String? userId,
     FrequencyType? frequencyType,
     List<DayOfWeek>? specificDays,
-    int? dayOfWeek,
     int? dayOfMonth,
     int? month,
     int? customInterval,
@@ -146,7 +140,6 @@ class Habit {
       userId: userId ?? this.userId,
       frequencyType: frequencyType ?? this.frequencyType,
       specificDays: specificDays ?? this.specificDays,
-      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
       dayOfMonth: dayOfMonth ?? this.dayOfMonth,
       month: month ?? this.month,
       customInterval: customInterval ?? this.customInterval,
@@ -167,27 +160,21 @@ class Habit {
     switch (frequencyType) {
       case FrequencyType.daily:
         return true;
-        
-      case FrequencyType.specificDays:
-        if (specificDays == null || specificDays!.isEmpty) return false;
-        // Check if today's weekday is in the specificDays list
-        return specificDays!.any((day) => day.value == date.weekday);
-        
       case FrequencyType.weekly:
-        if (dayOfWeek == null) return false;
-        return date.weekday == dayOfWeek;
-        
+        if (specificDays != null && specificDays!.isNotEmpty) {
+          // Check if today's weekday is in the specificDays list (one or more days)
+          return specificDays!.any((day) => day.value == date.weekday);
+        }
+        return false;
       case FrequencyType.monthly:
         if (dayOfMonth == null) return false;
         // Handle months with fewer days than the selected day
         final lastDayOfMonth = DateTime(date.year, date.month + 1, 0).day;
         final actualDayOfMonth = dayOfMonth! > lastDayOfMonth ? lastDayOfMonth : dayOfMonth!;
         return date.day == actualDayOfMonth;
-        
       case FrequencyType.yearly:
         if (dayOfMonth == null || month == null) return false;
         return date.day == dayOfMonth && date.month == month;
-        
       case FrequencyType.custom:
         if (customInterval == null || customInterval! <= 0 || lastCompletedDate == null) return true;
         // Calculate days since last completion
@@ -201,23 +188,15 @@ class Habit {
     switch (frequencyType) {
       case FrequencyType.daily:
         return 'Daily';
-        
-      case FrequencyType.specificDays:
-        if (specificDays == null || specificDays!.isEmpty) return 'No days selected';
+      case FrequencyType.weekly:
+        if (specificDays == null || specificDays!.isEmpty) return 'Weekly';
         final dayNames = specificDays!.map((day) => day.name.substring(0, 3)).join(', ');
         return specificDays!.length == 1 
-            ? 'Every ${specificDays![0].name}' 
-            : 'Every $dayNames';
-        
-      case FrequencyType.weekly:
-        if (dayOfWeek == null) return 'Weekly';
-        final day = DayOfWeek.fromInt(dayOfWeek!);
-        return 'Weekly on ${day.name}';
-        
+            ? 'Weekly on ${specificDays![0].name}' 
+            : 'Weekly on $dayNames';
       case FrequencyType.monthly:
         if (dayOfMonth == null) return 'Monthly';
         return 'Monthly on day $dayOfMonth';
-        
       case FrequencyType.yearly:
         if (dayOfMonth == null || month == null) return 'Yearly';
         final monthName = [
@@ -225,7 +204,6 @@ class Habit {
           'July', 'August', 'September', 'October', 'November', 'December'
         ][month! - 1];
         return 'Yearly on $monthName $dayOfMonth';
-        
       case FrequencyType.custom:
         if (customInterval == null || customInterval! <= 0) return 'Custom interval';
         return customInterval == 1 

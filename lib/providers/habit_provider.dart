@@ -302,10 +302,7 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     
     state.whenData((habits) {
       filteredHabits = habits.where((habit) {
-        if (habit.frequencyType == FrequencyType.weekly && habit.dayOfWeek == dayOfWeek) {
-          return true;
-        }
-        if (habit.frequencyType == FrequencyType.specificDays && 
+        if (habit.frequencyType == FrequencyType.weekly && 
             habit.specificDays != null && 
             habit.specificDays!.any((day) => day.value == dayOfWeek)) {
           return true;
@@ -316,7 +313,7 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     
     return filteredHabits;
   }
-  
+
   /// Check if any habits are due today
   bool hasHabitsDueToday() {
     final today = DateTime.now();
@@ -328,7 +325,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     required String habitId, 
     required FrequencyType frequencyType,
     List<DayOfWeek>? specificDays,
-    int? dayOfWeek,
     int? dayOfMonth,
     int? month,
     int? customInterval,
@@ -344,7 +340,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
         final updatedHabit = habitToUpdate!.copyWith(
           frequencyType: frequencyType,
           specificDays: specificDays,
-          dayOfWeek: dayOfWeek,
           dayOfMonth: dayOfMonth, 
           month: month,
           customInterval: customInterval,

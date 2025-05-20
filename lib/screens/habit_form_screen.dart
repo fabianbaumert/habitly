@@ -4,7 +4,6 @@ import 'package:habitly/providers/habit_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitly/models/habit.dart';
-import 'package:habitly/models/frequency_data.dart';
 import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/widgets/frequency_selector.dart';
 
@@ -32,7 +31,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   // Frequency settings
   FrequencyType _frequencyType = FrequencyType.daily;
   List<DayOfWeek>? _specificDays;
-  int? _dayOfWeek;
   int? _dayOfMonth;
   int? _month;
   int? _customInterval;
@@ -49,7 +47,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
       // Initialize frequency settings from existing habit
       _frequencyType = widget.existingHabit!.frequencyType;
       _specificDays = widget.existingHabit!.specificDays;
-      _dayOfWeek = widget.existingHabit!.dayOfWeek;
       _dayOfMonth = widget.existingHabit!.dayOfMonth;
       _month = widget.existingHabit!.month;
       _customInterval = widget.existingHabit!.customInterval;
@@ -98,7 +95,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
   void _handleFrequencyChanged({
     required FrequencyType frequencyType,
     List<DayOfWeek>? specificDays,
-    int? dayOfWeek,
     int? dayOfMonth,
     int? month,
     int? customInterval,
@@ -106,7 +102,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
     setState(() {
       _frequencyType = frequencyType;
       _specificDays = specificDays;
-      _dayOfWeek = dayOfWeek;
       _dayOfMonth = dayOfMonth;
       _month = month;
       _customInterval = customInterval;
@@ -139,7 +134,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
               : null,
           frequencyType: _frequencyType,
           specificDays: _specificDays,
-          dayOfWeek: _dayOfWeek,
           dayOfMonth: _dayOfMonth,
           month: _month,
           customInterval: _customInterval,
@@ -167,7 +161,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           userId: user.uid,
           frequencyType: _frequencyType,
           specificDays: _specificDays,
-          dayOfWeek: _dayOfWeek,
           dayOfMonth: _dayOfMonth,
           month: _month,
           customInterval: _customInterval,
@@ -256,7 +249,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
               FrequencySelector(
                 initialFrequencyType: _frequencyType,
                 initialSpecificDays: _specificDays,
-                initialDayOfWeek: _dayOfWeek,
                 initialDayOfMonth: _dayOfMonth,
                 initialMonth: _month,
                 initialCustomInterval: _customInterval,
