@@ -76,6 +76,7 @@ class HabitDetailScreen extends ConsumerWidget {
 
   // Habit Overview Section (read-only, only description and frequency, no headline, info icon for description)
   Widget _buildOverviewSection(BuildContext context, WidgetRef ref, Habit currentHabit) {
+    final hasDescription = currentHabit.description != null && currentHabit.description!.isNotEmpty;
     return Card(
       elevation: 2,
       child: Padding(
@@ -83,8 +84,7 @@ class HabitDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Description
-            if (currentHabit.description != null && currentHabit.description!.isNotEmpty)
+            if (hasDescription)
               Row(
                 children: [
                   const Icon(Icons.info_outline, color: Colors.blue),
@@ -97,10 +97,8 @@ class HabitDetailScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-
-            const SizedBox(height: 12),
-
-            // Frequency
+            if (hasDescription) const SizedBox(height: 12),
+            // Frequency (always same top margin if no description)
             Row(
               children: [
                 const Icon(Icons.repeat, color: Colors.purple),
