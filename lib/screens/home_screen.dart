@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/habit_detail_screen.dart';
@@ -17,7 +16,6 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authService = ref.watch(authServiceProvider);
     final habitsAsync = ref.watch(habitsProvider);
 
     // Set the current screen in navigation provider
@@ -28,15 +26,6 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Habitly'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              authService.signOut();
-            },
-            tooltip: 'Sign Out',
-          ),
-        ],
       ),
       body: habitsAsync.when(
         loading: () => const Center(

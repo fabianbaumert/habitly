@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 
@@ -113,11 +114,21 @@ class AccountScreen extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () {
-              // Logout functionality will be added in future
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Logout functionality coming soon')),
-              );
+            onTap: () async {
+              try {
+                await ref.read(authServiceProvider).signOut();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Successfully logged out')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error signing out: $e')),
+                  );
+                }
+              }
             },
           ),
         ],
