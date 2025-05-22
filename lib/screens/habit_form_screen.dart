@@ -77,6 +77,38 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
       return;
     }
 
+    // Validate frequency selections based on frequency type
+    String? frequencyError;
+    switch (_frequencyType) {
+      case FrequencyType.weekly:
+        if (_specificDays == null || _specificDays!.isEmpty) {
+          frequencyError = 'Please select at least one day of the week';
+        }
+        break;
+      case FrequencyType.monthly:
+        if (_dayOfMonth == null) {
+          frequencyError = 'Please select a day of the month';
+        }
+        break;
+      case FrequencyType.yearly:
+        if (_dayOfMonth == null) {
+          frequencyError = 'Please select a day for the yearly reminder';
+        }
+        // Month is always selected because it defaults to January (1) in the dropdown
+        break;
+      default:
+        // Daily frequency doesn't require additional selections
+        break;
+    }
+
+    // Show error and prevent saving if frequency validation fails
+    if (frequencyError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(frequencyError)),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });

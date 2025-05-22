@@ -112,11 +112,11 @@ class _FrequencySelectorState extends State<FrequencySelector> {
       case FrequencyType.daily:
         return 'Daily';
       case FrequencyType.weekly:
-        return 'Weekly (select one or more days)';
+        return 'Weekly (select at least one day)';
       case FrequencyType.monthly:
-        return 'Monthly on a specific date';
+        return 'Monthly (select a specific day)';
       case FrequencyType.yearly:
-        return 'Yearly on a specific date';
+        return 'Yearly (select month and day)';
       default:
         return '';
     }
@@ -141,7 +141,7 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Select days:'),
+        const Text('Select days (required):'),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -171,7 +171,7 @@ class _FrequencySelectorState extends State<FrequencySelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Day of month:'),
+        const Text('Day of month (required):'),
         const SizedBox(height: 8),
         SizedBox(
           height: 60,
@@ -240,7 +240,7 @@ class _FrequencySelectorState extends State<FrequencySelector> {
         ),
         
         const SizedBox(height: 16),
-        const Text('Day:'),
+        const Text('Day (required):'),
         const SizedBox(height: 8),
         SizedBox(
           height: 60,
