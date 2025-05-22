@@ -41,9 +41,11 @@ class HabitStorageService {
   // Save a habit
   Future<void> saveHabit(Habit habit) async {
     try {
+      print('[HabitStorageService] saveHabit: id=${habit.id}, name=${habit.name}, userId=${habit.userId}');
       final box = await Hive.openBox<HiveHabit>(_habitsBoxName);
       final hiveHabit = HiveHabit.fromHabit(habit);
       await box.put(habit.id, hiveHabit);
+      print('[HabitStorageService] saveHabit: Saved to Hive box');
     } catch (e) {
       appLogger.e('Failed to save habit: $e');
       rethrow;

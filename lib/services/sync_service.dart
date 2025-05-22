@@ -64,19 +64,12 @@ class SyncService {
       // Create lists for operations
       List<Habit> habitsToUpdate = [];
       List<Habit> habitsToCreate = [];
-      List<String> habitsToDelete = [];
       
       // Find habits to update in Firebase (local ones that exist in Firebase)
       for (final habit in localHabits) {
         if (firebaseHabitsMap.containsKey(habit.id)) {
           // Use the most recent version based on timestamp comparison
-          final firebaseHabit = firebaseHabitsMap[habit.id]!;
-          // No real timestamp to compare, so we'll use isDone as a simple check
-          // In a real app, you'd want to use updatedAt timestamps
-          if (habit.isDone != firebaseHabit.isDone) {
-            // Local change is different, update Firebase
-            habitsToUpdate.add(habit);
-          }
+          habitsToUpdate.add(habit);
         } else {
           // Habit exists locally but not in Firebase, create it
           habitsToCreate.add(habit);

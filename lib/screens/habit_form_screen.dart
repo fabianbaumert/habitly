@@ -150,7 +150,6 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
           description: _descriptionController.text.trim().isNotEmpty
               ? _descriptionController.text.trim()
               : null,
-          isDone: false,
           createdAt: DateTime.now(),
           userId: user.uid,
           frequencyType: _frequencyType, // Ensure this is set from the current state
@@ -161,6 +160,7 @@ class _HabitFormScreenState extends ConsumerState<HabitFormScreen> {
 
         // Add the habit using the provider
         await ref.read(habitsProvider.notifier).addHabit(newHabit);
+        debugPrint('[HabitFormScreen] addHabit called for id: ${newHabit.id}, name: ${newHabit.name}');
 
         if (mounted) {
           Navigator.of(context).pop();

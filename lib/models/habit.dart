@@ -32,7 +32,6 @@ class Habit {
   String id;
   String name;
   String? description;
-  bool isDone;
   DateTime createdAt;
   String userId;
   
@@ -47,7 +46,6 @@ class Habit {
     required this.id,
     required this.name,
     this.description,
-    this.isDone = false,
     required this.createdAt,
     required this.userId,
     this.frequencyType = FrequencyType.daily,
@@ -63,7 +61,6 @@ class Habit {
       'id': id,
       'name': name,
       'description': description,
-      'isDone': isDone,
       'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
       'frequencyType': frequencyType.name,
@@ -104,7 +101,6 @@ class Habit {
       id: doc.id,
       name: data['name'] ?? '',
       description: data['description'],
-      isDone: data['isDone'] ?? false,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
       frequencyType: frequency,
@@ -122,7 +118,6 @@ class Habit {
     String? id,
     String? name,
     String? description,
-    bool? isDone,
     DateTime? createdAt,
     String? userId,
     FrequencyType? frequencyType,
@@ -135,7 +130,6 @@ class Habit {
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      isDone: isDone ?? this.isDone,
       createdAt: createdAt ?? this.createdAt,
       userId: userId ?? this.userId,
       frequencyType: frequencyType ?? this.frequencyType,

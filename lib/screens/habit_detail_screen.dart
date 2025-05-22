@@ -4,6 +4,7 @@ import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_provider.dart';
 import 'package:habitly/screens/habit_form_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:habitly/providers/habit_history_provider.dart';
 
 // Create a provider for the current habit being viewed
 final currentHabitProvider = Provider<Habit>((ref) {
@@ -134,11 +135,13 @@ class HabitDetailScreen extends ConsumerWidget {
         final firstDayOfMonth = DateTime(selectedMonth.year, selectedMonth.month, 1);
         final firstWeekdayOfMonth = firstDayOfMonth.weekday; // 1 for Monday, 7 for Sunday
         
-        // In a real implementation, we'd fetch the habit completion history
-        // Since we don't have habit history tracking yet, we'll just show
-        // the current completion status if it's today
-        final isCompletedToday = currentHabit.isDone;
-        final selectedIsCurrentMonth = selectedMonth.year == now.year && selectedMonth.month == now.month;
+        // Use the habit history provider for today's completion status
+        final habitHistoryAsync = ref.watch(habitHistoryProvider(today));
+        final isCompletedToday = habitHistoryAsync.when(
+          data: (history) => history[currentHabit.id] == true,
+          loading: () => false,
+          error: (e, _) => false,
+        );
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

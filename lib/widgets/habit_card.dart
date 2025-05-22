@@ -21,7 +21,7 @@ class HabitCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final completed = isCompleted ?? habit.isDone;
+    final completed = isCompleted ?? false; // Default to false if not provided
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

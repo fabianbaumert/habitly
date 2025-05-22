@@ -16,25 +16,21 @@ class HiveHabit {
   final String? description;
   
   @HiveField(4)
-  final bool isDone;
-  
-  @HiveField(5)
   final DateTime createdAt;
   
-  @HiveField(6)
+  @HiveField(5)
   final String userId;
 
-  @HiveField(7)
+  @HiveField(6)
   final int frequencyTypeIndex;
 
-  @HiveField(8)
+  @HiveField(7)
   final List<int>? specificDays;
 
   HiveHabit({
     required this.id,
     required this.name,
     this.description,
-    this.isDone = false,
     required this.createdAt,
     required this.userId,
     this.frequencyTypeIndex = 0,
@@ -47,7 +43,6 @@ class HiveHabit {
       id: habit.id,
       name: habit.name,
       description: habit.description,
-      isDone: habit.isDone,
       createdAt: habit.createdAt,
       userId: habit.userId,
       frequencyTypeIndex: habit.frequencyType.index,
@@ -61,7 +56,6 @@ class HiveHabit {
       id: id,
       name: name,
       description: description,
-      isDone: isDone,
       createdAt: createdAt,
       userId: userId,
       frequencyType: FrequencyType.values[frequencyTypeIndex],

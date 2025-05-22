@@ -102,18 +102,18 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   // Add a new habit
   Future<void> addHabit(Habit habit) async {
     try {
+      print('[HabitsNotifier] addHabit: Saving habit id=${habit.id}, name=${habit.name}');
       // Save to local storage first
       await _habitStorage.saveHabit(habit);
-      
+      print('[HabitsNotifier] addHabit: Saved to local storage');
       // Update state
       state.whenData((habits) {
         state = AsyncValue.data([...habits, habit]);
+        print('[HabitsNotifier] addHabit: State updated, count=${habits.length + 1}');
       });
-      
       // Check connectivity before trying to sync with Firestore
       final connectivityService = ConnectivityService();
       final isOnline = await connectivityService.isConnected();
-      
       if (isOnline) {
         // Sync with Firestore if online
         await FirebaseFirestore.instance
@@ -124,7 +124,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       } else {
         appLogger.i('Added habit locally (offline): ${habit.name} (${habit.id}) - will sync when online');
       }
-      
       connectivityService.dispose();
     } catch (e) {
       appLogger.e('Error adding habit: $e');
@@ -203,14 +202,15 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
     }
   }
 
-  // Toggle the isDone state of a habit
+  // Toggle the completion state of a habit
   Future<void> toggleHabitCompletion(Habit habit) async {
     try {
-      final updatedHabit = habit.copyWith(isDone: !habit.isDone);
-      await updateHabit(updatedHabit);
-      
-      // Also record this change in the habit history for today's date
-      await recordHabitCompletion(habit.id, updatedHabit.isDone, DateTime.now());
+      final now = DateTime.now();
+      // Get the current completion status for today
+      final habitHistoryAsync = await _ref.read(habitHistoryProvider(now).future);
+      final currentStatus = habitHistoryAsync[habit.id] == true;
+      final newStatus = !currentStatus;
+      await recordHabitCompletion(habit.id, newStatus, now);
     } catch (e) {
       appLogger.e('Error toggling habit completion: $e');
     }
@@ -254,15 +254,6 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
           .set(update, SetOptions(merge: true));
           
       appLogger.i('Set habit ${habit.name} to ${newStatus ? "completed" : "uncompleted"} for $dateString');
-      
-      // If the date is today, also update the habit's isDone state
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final selectedDate = DateTime(date.year, date.month, date.day);
-      
-      if (selectedDate.isAtSameMomentAs(today)) {
-        await updateHabit(habit.copyWith(isDone: update[habit.id]!));
-      }
     } catch (e) {
       appLogger.e('Error toggling habit completion for date: $e');
       throw Exception('Could not update habit completion. Please try again later.');

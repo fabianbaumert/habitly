@@ -8,21 +8,29 @@ import 'package:habitly/services/sync_service.dart';
 
 // Provider for habit history (completion by date)
 final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>((ref, date) async {
+  print('[habitHistoryProvider] called for date: ${date.toIso8601String()}');
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return {};
+  if (user == null) {
+    print('[habitHistoryProvider] No user logged in');
+    return {};
+  }
   
   // Format the date as YYYY-MM-DD for storage
   final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  print('[habitHistoryProvider] dateString: ${dateString}');
   
   try {
     // Get the local habit history storage
     final historyStorage = ref.read(habitHistoryStorageServiceProvider);
+    print('[habitHistoryProvider] got historyStorage');
     
     // First check local storage
     final localData = await historyStorage.getHabitHistory(user.uid, dateString);
+    print('[habitHistoryProvider] localData: keys=${localData.keys.toList()}');
     
     // Check if online and we should check for newer data
     final isOnline = ref.read(isOnlineProvider);
+    print('[habitHistoryProvider] isOnline=${isOnline}');
     
     if (isOnline) {
       try {
@@ -33,6 +41,7 @@ final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>(
             .collection('dates')
             .doc(dateString)
             .get();
+        print('[habitHistoryProvider] Firestore snapshot.exists=${snapshot.exists}');
             
         if (snapshot.exists && snapshot.data() != null) {
           final data = snapshot.data() as Map<String, dynamic>;
@@ -40,6 +49,7 @@ final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>(
           final Map<String, bool> firebaseData = Map.from(data.map(
             (key, value) => MapEntry(key, value as bool)
           ));
+          print('[habitHistoryProvider] firebaseData: keys=${firebaseData.keys.toList()}');
           
           // Merge, preferring local changes over remote when both exist
           Map<String, bool> mergedData = {...firebaseData, ...localData};
@@ -49,19 +59,23 @@ final habitHistoryProvider = FutureProvider.family<Map<String, bool>, DateTime>(
               !firebaseData.keys.every((key) => 
                 localData.containsKey(key) && localData[key] == firebaseData[key])) {
             await historyStorage.saveHabitHistory(user.uid, dateString, mergedData);
+            print('[habitHistoryProvider] Merged and saved to local storage');
           }
           
           return mergedData;
         }
       } catch (e) {
+        print('[habitHistoryProvider] Error accessing Firestore: ${e.toString()}');
         appLogger.w('Error accessing Firestore for habit history: $e');
         // Fallback to local data only
       }
     }
     
     // Return local data if online fetch failed or we're offline
+    print('[habitHistoryProvider] Returning localData');
     return localData;
   } catch (e) {
+    print('[habitHistoryProvider] Error: ${e.toString()}');
     appLogger.e('Error fetching habit history: $e');
     return {}; // Return empty map on error
   }
@@ -83,7 +97,7 @@ final completionRateProvider = FutureProvider.family<double, DateTime>((ref, dat
     if (habitsOnDate.docs.isEmpty) return 0.0;
 
     // Get the completion status for this date
-    final historyData = await ref.watch(habitHistoryProvider(date).future);
+    final historyData = await ref.read(habitHistoryProvider(date).future);
 
     // Count completed habits
     int completedHabits = 0;
@@ -117,7 +131,7 @@ final allHabitsCompletedProvider = FutureProvider.family<bool, DateTime>((ref, d
     if (habitsOnDate.docs.isEmpty) return false;
 
     // Get the completion status for this date
-    final historyData = await ref.watch(habitHistoryProvider(date).future);
+    final historyData = await ref.read(habitHistoryProvider(date).future);
     if (historyData.isEmpty) return false;
 
     // Check if all habits were completed
