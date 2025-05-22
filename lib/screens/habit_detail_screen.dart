@@ -144,7 +144,7 @@ class HabitDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Monthly Calendar',
+              'Habit Completion Calendar',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
