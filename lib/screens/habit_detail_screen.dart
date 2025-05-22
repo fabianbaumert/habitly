@@ -10,6 +10,11 @@ final currentHabitProvider = Provider<Habit>((ref) {
   throw UnimplementedError('Provider was not overridden');
 });
 
+// Provider to track the currently selected month in the calendar
+final selectedMonthProvider = StateProvider.autoDispose<DateTime>((ref) {
+  return DateTime.now();
+});
+
 class HabitDetailScreen extends ConsumerWidget {
   final Habit habit;
 
@@ -117,142 +122,179 @@ class HabitDetailScreen extends ConsumerWidget {
 
   // Calendar Section - Shows a small calendar with completed days
   Widget _buildCalendarSection(BuildContext context, Habit currentHabit) {
-    // Get current month days
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final firstWeekdayOfMonth = firstDayOfMonth.weekday; // 1 for Monday, 7 for Sunday
-    
-    // In a real implementation, we'd fetch the habit completion history
-    // Since we don't have habit history tracking yet, we'll just show
-    // the current completion status if it's today
-    final isCompletedToday = currentHabit.isDone;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Monthly Calendar',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 16),
+    return Consumer(
+      builder: (context, ref, child) {
+        // Get the selected month from the provider
+        final selectedMonth = ref.watch(selectedMonthProvider);
         
-        // Month header
-        Center(
-          child: Text(
-            DateFormat.yMMMM().format(now),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        ),
+        // Get current month days
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final daysInMonth = DateUtils.getDaysInMonth(selectedMonth.year, selectedMonth.month);
+        final firstDayOfMonth = DateTime(selectedMonth.year, selectedMonth.month, 1);
+        final firstWeekdayOfMonth = firstDayOfMonth.weekday; // 1 for Monday, 7 for Sunday
         
-        const SizedBox(height: 16),
+        // In a real implementation, we'd fetch the habit completion history
+        // Since we don't have habit history tracking yet, we'll just show
+        // the current completion status if it's today
+        final isCompletedToday = currentHabit.isDone;
+        final selectedIsCurrentMonth = selectedMonth.year == now.year && selectedMonth.month == now.month;
         
-        // Day of week headers
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => 
-            SizedBox(
-              width: 40,
-              child: Center(
-                child: Text(
-                  day,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ),
-            )
-          ).toList(),
-        ),
-        
-        const SizedBox(height: 8),
-        
-        // Calendar grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1,
-          ),
-          itemCount: firstWeekdayOfMonth - 1 + daysInMonth,
-          itemBuilder: (context, index) {
-            // Empty cells before the first day of month
-            if (index < firstWeekdayOfMonth - 1) {
-              return const SizedBox.shrink();
-            }
-            
-            // Day cells
-            final day = index - (firstWeekdayOfMonth - 1) + 1;
-            final isToday = day == now.day;
-            // Only mark today as completed if the habit is done
-            final isCompleted = isToday && isCompletedToday;
-            final dayDate = DateTime(now.year, now.month, day);
-            final isFutureDay = dayDate.compareTo(today) > 0;
-            
-            return Container(
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted 
-                  ? Colors.green.withAlpha((0.8 * 255).toInt()) 
-                  : Colors.transparent,
-                border: isToday 
-                  ? Border.all(color: Theme.of(context).primaryColor, width: 2) 
-                  : null,
-              ),
-              child: Center(
-                child: Text(
-                  day.toString(),
-                  style: TextStyle(
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                    color: isCompleted 
-                        ? Colors.white 
-                        : (isFutureDay ? Colors.grey[400] : null),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Legend
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 16,
-              height: 16,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.green,
-              ),
+            Text(
+              'Monthly Calendar',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(width: 8),
-            const Text('Completed'),
+            const SizedBox(height: 16),
             
-            const SizedBox(width: 24),
-            
-            Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).primaryColor, width: 2),
-              ),
+            // Month header with navigation arrows
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Previous month button
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    // Navigate to previous month
+                    final previousMonth = DateTime(selectedMonth.year, selectedMonth.month - 1);
+                    ref.read(selectedMonthProvider.notifier).state = previousMonth;
+                  },
+                ),
+                
+                // Month and year display
+                Text(
+                  DateFormat.yMMMM().format(selectedMonth),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                
+                // Next month button
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    // Navigate to next month
+                    final nextMonth = DateTime(selectedMonth.year, selectedMonth.month + 1);
+                    ref.read(selectedMonthProvider.notifier).state = nextMonth;
+                  },
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Text('Today'),
+            
+            const SizedBox(height: 16),
+            
+            // Day of week headers
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => 
+                SizedBox(
+                  width: 40,
+                  child: Center(
+                    child: Text(
+                      day,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                )
+              ).toList(),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Calendar grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                childAspectRatio: 1,
+              ),
+              itemCount: firstWeekdayOfMonth - 1 + daysInMonth,
+              itemBuilder: (context, index) {
+                // Empty cells before the first day of month
+                if (index < firstWeekdayOfMonth - 1) {
+                  return const SizedBox.shrink();
+                }
+                
+                // Day cells
+                final day = index - (firstWeekdayOfMonth - 1) + 1;
+                final dayDate = DateTime(selectedMonth.year, selectedMonth.month, day);
+                
+                // Check if this is today
+                final isToday = dayDate.year == today.year && 
+                                dayDate.month == today.month && 
+                                dayDate.day == today.day;
+                                
+                // Only mark today as completed if the habit is done
+                final isCompleted = isToday && isCompletedToday;
+                final isFutureDay = dayDate.compareTo(today) > 0;
+                
+                return Container(
+                  margin: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isCompleted 
+                      ? Colors.green.withAlpha((0.8 * 255).toInt()) 
+                      : Colors.transparent,
+                    border: isToday 
+                      ? Border.all(color: Theme.of(context).primaryColor, width: 2) 
+                      : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      day.toString(),
+                      style: TextStyle(
+                        fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                        color: isCompleted 
+                            ? Colors.white 
+                            : (isFutureDay ? Colors.grey[400] : null),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Legend
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('Completed'),
+                
+                const SizedBox(width: 24),
+                
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Theme.of(context).primaryColor, width: 2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('Today'),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
