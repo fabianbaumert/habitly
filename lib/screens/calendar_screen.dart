@@ -29,9 +29,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late DateTime _selectedDay;
   late CalendarFormat _calendarFormat;
   
-  // Add a map to keep track of locally updated completion states
-  final Map<String, bool> _localCompletionStatus = {};
-  
   @override
   void initState() {
     super.initState();
@@ -45,110 +42,68 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     });
   }
   
-  // Check if a date has all habits completed (considering local changes)
-  Future<bool> _areAllHabitsCompleted(DateTime date) async {
-    final habitsAsync = ref.read(habitsProvider);
-    
+  // Check if a date has all habits completed (real-time, reactive)
+  bool _areAllHabitsCompleted(DateTime date, AsyncValue<List<Habit>> habitsAsync, AsyncValue<Map<String, bool>> habitHistoryAsync) {
     return habitsAsync.when(
-      data: (habits) async {
+      data: (habits) {
         if (habits.isEmpty) return false;
-        
-        // Get filtered habits for this date
-        final dateFormatted = DateTime(date.year, date.month, date.day);
-        final habitsForDate = habits.where(
-          (habit) {
-            final habitDate = DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day);
-            return !habitDate.isAfter(dateFormatted);
-          }
-        ).toList();
-        
+        final habitsForDate = habits.where((habit) => habit.isDueOn(date)).toList();
         if (habitsForDate.isEmpty) return false;
-        
-        // Get server status
-        final serverStatus = await ref.read(habitHistoryProvider(date).future);
-        
-        // Check if all habits are completed (either in server or local state)
-        for (final habit in habitsForDate) {
-          final isCompleted = _getCompletionStatus(habit.id, date, serverStatus);
-          if (!isCompleted) {
-            return false; // Found an uncompleted habit
-          }
-        }
-        
-        return true; // All habits are completed
+        return habitHistoryAsync.when(
+          data: (serverStatus) {
+            for (final habit in habitsForDate) {
+              final isCompleted = _getCompletionStatus(habit.id, date, serverStatus);
+              if (!isCompleted) return false;
+            }
+            return true;
+          },
+          loading: () => false,
+          error: (_, __) => false,
+        );
       },
       loading: () => false,
       error: (_, __) => false,
     );
   }
-  
-  // Calculate completion rate (considering local changes)
-  Future<double> _getCompletionRate(DateTime date) async {
-    final habitsAsync = ref.read(habitsProvider);
-    
+
+  // Calculate completion rate (real-time, reactive)
+  double _getCompletionRate(DateTime date, AsyncValue<List<Habit>> habitsAsync, AsyncValue<Map<String, bool>> habitHistoryAsync) {
     return habitsAsync.when(
-      data: (habits) async {
+      data: (habits) {
         if (habits.isEmpty) return 0.0;
-        
-        // Get filtered habits for this date
-        final dateFormatted = DateTime(date.year, date.month, date.day);
-        final habitsForDate = habits.where(
-          (habit) {
-            final habitDate = DateTime(habit.createdAt.year, habit.createdAt.month, habit.createdAt.day);
-            return !habitDate.isAfter(dateFormatted);
-          }
-        ).toList();
-        
+        final habitsForDate = habits.where((habit) => habit.isDueOn(date)).toList();
         if (habitsForDate.isEmpty) return 0.0;
-        
-        // Get server status
-        final serverStatus = await ref.read(habitHistoryProvider(date).future);
-        
-        // Count completed habits
-        int completedCount = 0;
-        for (final habit in habitsForDate) {
-          final isCompleted = _getCompletionStatus(habit.id, date, serverStatus);
-          if (isCompleted) {
-            completedCount++;
-          }
-        }
-        
-        return completedCount / habitsForDate.length;
+        return habitHistoryAsync.when(
+          data: (serverStatus) {
+            int completedCount = 0;
+            for (final habit in habitsForDate) {
+              final isCompleted = _getCompletionStatus(habit.id, date, serverStatus);
+              if (isCompleted) completedCount++;
+            }
+            return completedCount / habitsForDate.length;
+          },
+          loading: () => 0.0,
+          error: (_, __) => 0.0,
+        );
       },
       loading: () => 0.0,
       error: (_, __) => 0.0,
     );
   }
   
-  // Function to toggle completion state locally and in the database
+  // Function to toggle completion state in the database and refresh provider
   void _toggleHabitCompletion(Habit habit, DateTime date, bool currentStatus) {
-    // Update local state immediately
-    setState(() {
-      // Create a key that includes both habit ID and date
-      final key = '${habit.id}_${date.year}-${date.month}-${date.day}';
-      _localCompletionStatus[key] = !currentStatus;
-    });
-    
-    // Then update the database
     ref.read(habitsProvider.notifier).toggleHabitCompletionForDate(
       habit, 
       date
-    );
-    
-    // Trigger calendar update
-    ref.read(calendarUpdateProvider.notifier).state++;
+    ).then((_) {
+      // No need to invalidate, StreamProvider will update automatically
+      ref.read(calendarUpdateProvider.notifier).state++;
+    });
   }
-  
-  // Function to get the current completion status (from local state if available)
+
+  // Function to get the current completion status (from provider only)
   bool _getCompletionStatus(String habitId, DateTime date, Map<String, bool> serverStatus) {
-    final key = '${habitId}_${date.year}-${date.month}-${date.day}';
-    
-    // If we have a local override, use that
-    if (_localCompletionStatus.containsKey(key)) {
-      return _localCompletionStatus[key]!;
-    }
-    
-    // Otherwise use the server status
     return serverStatus[habitId] ?? false;
   }
   
@@ -249,55 +204,53 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       calendarBuilders: CalendarBuilders(
         markerBuilder: (context, date, events) {
-          return FutureBuilder<bool>(
-            future: _areAllHabitsCompleted(date),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const SizedBox.shrink(); // Show nothing while loading
-              }
-              
-              return FutureBuilder<double>(
-                future: _getCompletionRate(date),
-                builder: (context, rateSnapshot) {
-                  if (!rateSnapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  final completionRate = rateSnapshot.data ?? 0.0;
-                  Color markerColor;
-                  
-                  if (snapshot.data == true) {
-                    // All habits completed
-                    markerColor = Colors.green;
-                  } else if (completionRate > 0) {
-                    // Some habits completed
-                    markerColor = Colors.amber;
-                  } else {
-                    // No habits completed
-                    markerColor = Colors.grey.withAlpha((0.3 * 255).toInt());
-                  }
-                  
-                  // Only show markers for dates up to today
-                  final now = DateTime.now();
-                  final today = DateTime(now.year, now.month, now.day);
-                  final checkDate = DateTime(date.year, date.month, date.day);
-                  
-                  if (checkDate.isAfter(today)) {
-                    return const SizedBox.shrink();
-                  }
-                  
-                  return Container(
-                    margin: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: markerColor,
-                    ),
-                    width: 12, // was 8
-                    height: 12, // was 8
+          return Consumer(
+            builder: (context, ref, _) {
+              final habitsAsync = ref.watch(habitsProvider);
+              final habitHistoryAsync = ref.watch(habitHistoryProvider(date));
+              return habitsAsync.when(
+                data: (habits) {
+                  final habitsForDate = habits.where((habit) => habit.isDueOn(date)).toList();
+                  if (habitsForDate.isEmpty) return const SizedBox.shrink();
+                  return habitHistoryAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (error, stackTrace) => const SizedBox.shrink(),
+                    data: (serverStatus) {
+                      // Check if all habits are completed
+                      final allCompleted = habitsForDate.every((habit) => serverStatus[habit.id] ?? false);
+                      final completedCount = habitsForDate.where((habit) => serverStatus[habit.id] ?? false).length;
+                      final completionRate = habitsForDate.isEmpty ? 0.0 : completedCount / habitsForDate.length;
+                      Color markerColor;
+                      if (allCompleted) {
+                        markerColor = Colors.green;
+                      } else if (completionRate > 0) {
+                        markerColor = Colors.amber;
+                      } else {
+                        markerColor = Colors.grey.withAlpha((0.3 * 255).toInt());
+                      }
+                      // Only show markers for dates up to today
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
+                      final checkDate = DateTime(date.year, date.month, date.day);
+                      if (checkDate.isAfter(today)) {
+                        return const SizedBox.shrink();
+                      }
+                      return Container(
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: markerColor,
+                        ),
+                        width: 12,
+                        height: 12,
+                      );
+                    },
                   );
-                }
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (error, stackTrace) => const SizedBox.shrink(),
               );
-            }
+            },
           );
         },
       ),
@@ -310,6 +263,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final selectedDate = DateTime(_selectedDay.year, _selectedDay.month, _selectedDay.day);
     final isFutureDate = selectedDate.isAfter(today);
+    final habitHistoryAsync = ref.watch(habitHistoryProvider(_selectedDay));
 
     return habitsAsync.when(
       data: (habits) {
@@ -323,10 +277,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           );
         }
-        return FutureBuilder<Map<String, bool>>(
-          future: ref.read(habitHistoryProvider(_selectedDay).future),
-          builder: (context, snapshot) {
-            final habitHistory = snapshot.data ?? {};
+        return habitHistoryAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(child: Text('Error loading habit history: $error')),
+          data: (habitHistory) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
