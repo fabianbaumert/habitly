@@ -267,8 +267,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
     return habitsAsync.when(
       data: (habits) {
-        // Only show habits that are scheduled for the selected date
-        final selectedDayHabits = habits.where((habit) => habit.isDueOn(selectedDate)).toList();
+        // Only show habits that are scheduled for the selected date AND were created on or before that date
+        final selectedDayHabits = habits.where((habit) =>
+          habit.isDueOn(selectedDate) &&
+          habit.createdAt.isBefore(selectedDate.add(const Duration(days: 1)))
+        ).toList();
         if (selectedDayHabits.isEmpty) {
           return const Center(
             child: Text(
