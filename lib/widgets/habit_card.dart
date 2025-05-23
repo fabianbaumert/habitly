@@ -21,7 +21,22 @@ class HabitCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final completed = isCompleted ?? false; // Default to false if not provided
+    // Determine completion status from either explicit isCompleted OR from habit.lastCompletedDate
+    bool explicitlyCompleted = isCompleted ?? false; 
+    
+    // Check if today matches the lastCompletedDate (backup method)
+    bool completedFromLastDate = false;
+    if (habit.lastCompletedDate != null) {
+      final now = DateTime.now();
+      completedFromLastDate = 
+        habit.lastCompletedDate!.year == now.year && 
+        habit.lastCompletedDate!.month == now.month && 
+        habit.lastCompletedDate!.day == now.day;
+    }
+    
+    // Use either source of completion status
+    final completed = explicitlyCompleted || completedFromLastDate;
+    
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

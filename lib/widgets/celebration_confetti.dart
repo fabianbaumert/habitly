@@ -45,10 +45,10 @@ class _CelebrationConfettiState extends State<CelebrationConfetti> {
         confettiController: _controller,
         blastDirectionality: BlastDirectionality.explosive,
         shouldLoop: false,
-        numberOfParticles: 15, // Increased from 10
-        maxBlastForce: 20,
+        numberOfParticles: 10, // Reduced number of particles
+        maxBlastForce: 15,  // Slightly reduced force
         minBlastForce: 8,
-        emissionFrequency: 0.05, // Reduced from 0.1
+        emissionFrequency: 0.08,
         gravity: 0.3,
         colors: const [
           Colors.green,

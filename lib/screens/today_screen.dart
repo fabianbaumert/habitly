@@ -28,17 +28,38 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
 
   void _handleToggleHabit(Habit habit, List<Habit> dueHabits, Map<String, bool> habitHistory) {
     final wasLastTodo = dueHabits.where((h) => habitHistory[h.id] != true && h.id != habit.id).isEmpty;
-    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-    // Only show confetti if this is the last todo and not already shown today
-    final today = DateTime.now();
+    
+    // Create optimistic UI update - update current view immediately 
+    // before the async operations complete
+    setState(() {
+      // Update the local state optimistically
+      final currentStatus = habitHistory[habit.id] == true;
+      habitHistory[habit.id] = !currentStatus;
+    });
+    
+    // Toggle the habit in the background
+    ref.read(habitsProvider.notifier).toggleHabitCompletion(habit).then((_) {
+      // Only invalidate habitHistoryProvider as it's more lightweight
+      ref.invalidate(habitHistoryProvider(today));
+      
+      // Show confetti if needed - delay slightly to ensure UI has updated
+      if (wasLastTodo && habitHistory[habit.id] == true) {
+        _showConfettiIfNeeded();
+      }
+    });
+  }
+  
+  void _showConfettiIfNeeded() {
+    final currentDate = DateTime.now();
     final isNewDay = _lastConfettiDate == null ||
-      _lastConfettiDate!.year != today.year ||
-      _lastConfettiDate!.month != today.month ||
-      _lastConfettiDate!.day != today.day;
-    if (wasLastTodo && habitHistory[habit.id] != true && (isNewDay || !_showConfetti)) {
+      _lastConfettiDate!.year != currentDate.year ||
+      _lastConfettiDate!.month != currentDate.month ||
+      _lastConfettiDate!.day != currentDate.day;
+      
+    if (isNewDay || !_showConfetti) {
       setState(() {
         _showConfetti = true;
-        _lastConfettiDate = today;
+        _lastConfettiDate = currentDate;
       });
       Future.delayed(const Duration(seconds: 5), () {
         if (mounted) {
@@ -65,45 +86,38 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
     final habitsAsync = ref.watch(habitsProvider);
     final habitHistoryAsync = ref.watch(habitHistoryProvider(today));
 
-    debugPrint('[TodayScreen] habitsAsync: ${habitsAsync.toString()}');
-    debugPrint('[TodayScreen] habitHistoryAsync: ${habitHistoryAsync.toString()}');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Today'),
       ),
       body: habitsAsync.when(
         loading: () {
-          debugPrint('[TodayScreen] habitsProvider is loading');
           return const Center(
             child: CircularProgressIndicator(),
           );
         },
         error: (error, stackTrace) {
-          debugPrint('[TodayScreen] habitsProvider error: ${error.toString()}');
           return Center(
             child: Text('Error loading habits: ${error.toString()}'),
           );
         },
         data: (habits) {
-          debugPrint('[TodayScreen] habitsProvider data: count=${habits.length}');
           return habitHistoryAsync.when(
             loading: () {
-              debugPrint('[TodayScreen] habitHistoryProvider is loading');
               return const Center(child: CircularProgressIndicator());
             },
             error: (error, stackTrace) {
-              debugPrint('[TodayScreen] habitHistoryProvider error: ${error.toString()}');
               return Center(child: Text('Error loading habit history: ${error.toString()}'));
             },
             data: (habitHistory) {
-              debugPrint('[TodayScreen] habitHistoryProvider data: keys=${habitHistory.keys.toList()}');
               // Filter habits due today
               final dueHabits = habits.where((habit) => habit.isDueOn(today)).toList();
-              debugPrint('[TodayScreen] dueHabits count: ${dueHabits.length}');
+              
               if (dueHabits.isEmpty) {
                 // Reset confetti for a new day if no habits
-                if (_lastConfettiDate != null && (_lastConfettiDate!.year != today.year || _lastConfettiDate!.month != today.month || _lastConfettiDate!.day != today.day)) {
+                if (_lastConfettiDate != null && (_lastConfettiDate!.year != today.year || 
+                    _lastConfettiDate!.month != today.month || 
+                    _lastConfettiDate!.day != today.day)) {
                   _lastConfettiDate = null;
                   _showConfetti = false;
                 }
@@ -134,10 +148,9 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                 );
               }
 
-              // Separate into to-do and completed lists
+              // Memoize these lists to avoid unnecessary rebuilds
               final todoHabits = dueHabits.where((h) => habitHistory[h.id] != true).toList();
               final completedHabits = dueHabits.where((h) => habitHistory[h.id] == true).toList();
-              debugPrint('[TodayScreen] todoHabits count: ${todoHabits.length}, completedHabits count: ${completedHabits.length}');
 
               return Stack(
                 children: [
@@ -189,6 +202,7 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                                   child: HabitCard(
                                     habit: habit,
                                     showCheckbox: true,
+                                    isCompleted: habitHistory[habit.id] == true,
                                     onToggle: () => _handleToggleHabit(habit, dueHabits, habitHistory),
                                   ),
                                 );
@@ -259,9 +273,8 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
                                     child: HabitCard(
                                       habit: habit,
                                       showCheckbox: true,
-                                      onToggle: () {
-                                        ref.read(habitsProvider.notifier).toggleHabitCompletion(habit);
-                                      },
+                                      isCompleted: habitHistory[habit.id] == true,
+                                      onToggle: () => _handleToggleHabit(habit, dueHabits, habitHistory),
                                     ),
                                   );
                                 },

@@ -210,7 +210,31 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       final habitHistoryAsync = await _ref.read(habitHistoryProvider(now).future);
       final currentStatus = habitHistoryAsync[habit.id] == true;
       final newStatus = !currentStatus;
+      
+      // Record completion in habit history
       await recordHabitCompletion(habit.id, newStatus, now);
+      
+      // Also update the habit's lastCompletedDate for redundancy
+      if (newStatus) {
+        // Set lastCompletedDate to today if completing
+        final updatedHabit = habit.copyWith(lastCompletedDate: now);
+        await updateHabit(updatedHabit);
+        appLogger.i('Updated lastCompletedDate for habit ${habit.id} to ${now.toIso8601String().split('T')[0]}');
+      } else if (habit.lastCompletedDate != null) {
+        // If we're un-completing and the lastCompletedDate is today, clear it
+        final today = DateTime(now.year, now.month, now.day);
+        final lastCompleted = DateTime(
+          habit.lastCompletedDate!.year,
+          habit.lastCompletedDate!.month,
+          habit.lastCompletedDate!.day
+        );
+        
+        if (today.isAtSameMomentAs(lastCompleted)) {
+          final updatedHabit = habit.copyWith(lastCompletedDate: null);
+          await updateHabit(updatedHabit);
+          appLogger.i('Cleared lastCompletedDate for habit ${habit.id}');
+        }
+      }
     } catch (e) {
       appLogger.e('Error toggling habit completion: $e');
     }
