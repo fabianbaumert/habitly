@@ -254,6 +254,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           );
         },
       ),
+      startingDayOfWeek: StartingDayOfWeek.monday,
     );
   }
   
