@@ -283,7 +283,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         }
         return habitHistoryAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(child: Text('Error loading habit history: $error')),
+          error: (error, stackTrace) {
+            // When we get permissions errors, don't show them to the user
+            final errorStr = error.toString();
+            if (errorStr.contains('permission-denied')) {
+              return const Center(
+                child: Text(
+                  'No habit data available for this date',
+                  style: TextStyle(fontSize: 16),
+                ),
+              );
+            }
+            return Center(child: Text('Error loading habit history: $error'));
+          },
           data: (habitHistory) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

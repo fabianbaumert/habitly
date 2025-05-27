@@ -1,38 +1,72 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/services/sync_service.dart';
 
+// Provider for the habit history storage service
+final habitHistoryStorageServiceProvider = Provider<HabitHistoryStorageService>((ref) {
+  return HabitHistoryStorageService();
+});
+
+// Provider for tracking the current user ID to invalidate caches on user change
+final currentUserIdProvider = StateProvider<String?>((ref) {
+  return FirebaseAuth.instance.currentUser?.uid;
+});
+
 // Provider for habit history (completion by date)
 final habitHistoryProvider = StreamProvider.family<Map<String, bool>, DateTime>((ref, date) async* {
-  final user = FirebaseAuth.instance.currentUser;
+  // Using the authStateProvider directly to get the most up-to-date auth state
+  final authState = ref.watch(authStateProvider);
+  
+  // Wait for auth state to resolve and yield empty if no user
+  final user = authState.when(
+    data: (user) => user,
+    loading: () => null,
+    error: (_, __) => null,
+  );
+  
   if (user == null) {
     yield {};
     return;
   }
-  // Format the date as YYYY-MM-DD for storage
-  final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   
-  // Listen to Firestore for real-time updates
-  final docStream = FirebaseFirestore.instance
-      .collection('habitHistory')
-      .doc(user.uid)
-      .collection('dates')
-      .doc(dateString)
-      .snapshots();
-  await for (final snapshot in docStream) {
-    if (snapshot.exists && snapshot.data() != null) {
-      final data = snapshot.data() as Map<String, dynamic>;
-      final Map<String, bool> firebaseData = Map.from(data.map(
-        (key, value) => MapEntry(key, value as bool)
-      ));
-      yield firebaseData;
-    } else {
-      yield {};
+  try {
+    // Format the date as YYYY-MM-DD for storage
+    final dateString = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+    
+    // First try to get data from local storage to avoid permission issues during transitions
+    final historyStorage = ref.read(habitHistoryStorageServiceProvider);
+    final localData = await historyStorage.getHabitHistory(user.uid, dateString);
+    
+    // Yield local data first to prevent UI from showing errors during auth transitions
+    yield localData;
+    
+    // Listen to Firestore for real-time updates for the CURRENT user
+    final docStream = FirebaseFirestore.instance
+        .collection('habitHistory')
+        .doc(user.uid) 
+        .collection('dates')
+        .doc(dateString)
+        .snapshots();
+        
+    await for (final snapshot in docStream) {
+      if (snapshot.exists && snapshot.data() != null) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        final Map<String, bool> firebaseData = Map.from(data.map(
+          (key, value) => MapEntry(key, value as bool)
+        ));
+        yield firebaseData;
+      } else {
+        yield {};
+      }
     }
+  } catch (e) {
+    appLogger.e('Error fetching habit history: $e');
+    yield {}; // Return empty map on error
   }
 });
 

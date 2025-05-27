@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
+import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 
@@ -116,7 +117,12 @@ class AccountScreen extends ConsumerWidget {
             title: const Text('Logout', style: TextStyle(color: Colors.red)),
             onTap: () async {
               try {
+                // Update the currentUserIdProvider to trigger UI refresh
+                ref.read(currentUserIdProvider.notifier).state = null;
+                
+                // Sign out
                 await ref.read(authServiceProvider).signOut();
+                
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Successfully logged out')),

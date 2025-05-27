@@ -41,6 +41,20 @@ class SyncService {
     
     appLogger.i('Data sync completed');
   }
+  
+  // Clear all data for a user when logging out
+  Future<void> clearUserData(String userId) async {
+    try {
+      // Clear habit history
+      await _habitHistoryStorage.clearUserHabitHistory(userId);
+      // Clear habits
+      await _habitStorage.clearUserHabits(userId);
+      
+      appLogger.i('Cleared all user data for userId: $userId');
+    } catch (e) {
+      appLogger.e('Error clearing user data: $e');
+    }
+  }
 
   // Sync habits between local storage and Firebase
   Future<void> _syncHabits(String userId) async {

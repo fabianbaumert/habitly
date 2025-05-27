@@ -45,6 +45,10 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
+      // Store the current user ID before signing out to be able to clean up
+      final currentUserId = _auth.currentUser?.uid;
+      
+      // Perform Firebase sign out
       await _auth.signOut();
       appLogger.i('User signed out');
     } catch (e) {

@@ -2,10 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/habit.dart';
+import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
+import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
+import 'package:habitly/services/sync_service.dart';
 
 // Provider for the habit storage service
 final habitStorageServiceProvider = Provider<HabitStorageService>((ref) {
@@ -49,9 +52,64 @@ final habitsProvider = StateNotifierProvider<HabitsNotifier, AsyncValue<List<Hab
 class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   final HabitStorageService _habitStorage;
   final Ref _ref;
+  String? _currentUserId;
   
   HabitsNotifier(this._habitStorage, this._ref) : super(const AsyncValue.loading()) {
     _init();
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
+    // Listen to auth state changes
+    _ref.listen(authStateProvider, (previous, next) {
+      next.whenData((user) {
+        final newUserId = user?.uid;
+        
+        // If user changed (logged out or switched users), clear local data and reinitialize
+        if (_currentUserId != newUserId) {
+          _currentUserId = newUserId;
+          _handleUserChange(newUserId);
+        }
+      });
+    });
+  }
+
+  Future<void> _handleUserChange(String? newUserId) async {
+    // If we had a previous user, explicitly clear their habits from local storage
+    String? previousUserId = newUserId == null ? _currentUserId : null;
+    if (previousUserId != null) {
+      // Clean up previous user's data from local storage
+      await _habitStorage.clearUserHabits(previousUserId);
+      appLogger.i('Cleared local habits for previous user: $previousUserId');
+      
+      // Also clear habit history for previous user from Hive
+      try {
+        // Use the sync service which already has a reference to habit history storage
+        final syncService = _ref.read(syncServiceProvider);
+        await syncService.clearUserData(previousUserId);
+        appLogger.i('Cleared local habit history for previous user: $previousUserId');
+      } catch (e) {
+        appLogger.e('Error clearing local habit history: $e');
+      }
+      
+      // Also update the currentUserIdProvider to force other providers to update
+      _ref.read(currentUserIdProvider.notifier).state = newUserId;
+    }
+    
+    if (newUserId == null) {
+      // User logged out, clear state
+      state = const AsyncValue.data([]);
+      appLogger.i('User logged out, cleared habits state');
+    } else {
+      // User logged in or switched, load new user's data
+      appLogger.i('User changed to: $newUserId, reloading data');
+      
+      // Clear state first
+      state = const AsyncValue.loading();
+      
+      // Reinitialize for new user
+      await _init();
+    }
   }
 
   Future<void> _init() async {
@@ -60,6 +118,8 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
       state = const AsyncValue.data([]);
       return;
     }
+    
+    _currentUserId = user.uid;
     
     // Start with local data
     try {
