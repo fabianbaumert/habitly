@@ -86,6 +86,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // App icon centered above the title, visually balanced for layout
+                const SizedBox(height: 16),
+                Center(
+                  child: Image.asset(
+                    'assets/images/app_icon.png',
+                    width: 80,
+                    height: 80,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 const Text(
                   'Habitly',
                   textAlign: TextAlign.center,
