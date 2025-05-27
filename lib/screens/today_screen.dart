@@ -74,11 +74,6 @@ class _TodayScreenState extends ConsumerState<TodayScreen> {
   @override
   void initState() {
     super.initState();
-    
-    // Set the current screen in navigation provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.today);
-    });
   }
 
   @override

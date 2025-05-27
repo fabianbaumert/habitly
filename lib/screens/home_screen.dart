@@ -18,11 +18,6 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final habitsAsync = ref.watch(habitsProvider);
 
-    // Set the current screen in navigation provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.home);
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Habits'),

@@ -37,11 +37,6 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Set the current screen in navigation provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.feedback);
-    });
-
     // Get current feedback submission state
     final submissionState = ref.watch(feedbackSubmissionStateProvider);
   

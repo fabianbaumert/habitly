@@ -8,11 +8,26 @@ import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/screens/today_screen.dart';
 import 'package:habitly/screens/account_screen.dart';
 
-class MainScreen extends ConsumerWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends ConsumerState<MainScreen> {
+  @override
+  void initState() {
+    super.initState();
+    
+    // Set the initial navigation to TodayScreen when MainScreen is first created
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.today);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Watch the current screen from navigation provider
     final currentScreen = ref.watch(navigationProvider);
     final notifier = ref.read(navigationProvider.notifier);

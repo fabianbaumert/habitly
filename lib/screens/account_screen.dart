@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
-import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/feedback_screen.dart';
 
 class AccountScreen extends ConsumerWidget {
@@ -15,11 +14,8 @@ class AccountScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Set the current screen in navigation provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.account);
-    });
-
+    // We don't need to set navigation here as it's handled by the navigation provider
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account'),

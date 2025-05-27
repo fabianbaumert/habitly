@@ -35,11 +35,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
     _calendarFormat = CalendarFormat.month;
-    
-    // Set the current screen in navigation provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(navigationProvider.notifier).setScreen(NavigationScreen.calendar);
-    });
   }
   
   // Check if a date has all habits completed (real-time, reactive)
