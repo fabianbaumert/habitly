@@ -6,7 +6,6 @@ import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
-import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/logger_service.dart';
 import 'package:habitly/services/sync_service.dart';
 
@@ -162,14 +161,14 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<Habit>>> {
   // Add a new habit
   Future<void> addHabit(Habit habit) async {
     try {
-      print('[HabitsNotifier] addHabit: Saving habit id=${habit.id}, name=${habit.name}');
+      appLogger.i('[HabitsNotifier] addHabit: Saving habit id=${habit.id}, name=${habit.name}');
       // Save to local storage first
       await _habitStorage.saveHabit(habit);
-      print('[HabitsNotifier] addHabit: Saved to local storage');
+      appLogger.i('[HabitsNotifier] addHabit: Saved to local storage');
       // Update state
       state.whenData((habits) {
         state = AsyncValue.data([...habits, habit]);
-        print('[HabitsNotifier] addHabit: State updated, count=${habits.length + 1}');
+        appLogger.i('[HabitsNotifier] addHabit: State updated, count=${habits.length + 1}');
       });
       // Check connectivity before trying to sync with Firestore
       final connectivityService = ConnectivityService();

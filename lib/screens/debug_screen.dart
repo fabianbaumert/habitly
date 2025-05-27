@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_history_storage_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
-import 'package:habitly/services/logger_service.dart';
 
 class DebugScreen extends StatelessWidget {
   const DebugScreen({super.key});

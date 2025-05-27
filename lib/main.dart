@@ -9,7 +9,6 @@ import 'firebase_options.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/theme_provider.dart';
 import 'package:habitly/screens/auth/login_screen.dart';
-import 'package:habitly/screens/home_screen.dart';
 import 'package:habitly/screens/main_screen.dart';
 import 'package:habitly/services/connectivity_service.dart';
 import 'package:habitly/services/habit_storage_service.dart';
