@@ -135,13 +135,8 @@ class HabitDetailScreen extends ConsumerWidget {
         final firstDayOfMonth = DateTime(selectedMonth.year, selectedMonth.month, 1);
         final firstWeekdayOfMonth = firstDayOfMonth.weekday; // 1 for Monday, 7 for Sunday
         
-        // Use the habit history provider for today's completion status
-        final habitHistoryAsync = ref.watch(habitHistoryProvider(today));
-        final isCompletedToday = habitHistoryAsync.when(
-          data: (history) => history[currentHabit.id] == true,
-          loading: () => false,
-          error: (e, _) => false,
-        );
+        // We no longer need to track only today's status here
+        // as we'll check each date individually in the calendar
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,9 +228,13 @@ class HabitDetailScreen extends ConsumerWidget {
                 final isToday = dayDate.year == today.year && 
                                 dayDate.month == today.month && 
                                 dayDate.day == today.day;
-                                
-                // Only mark today as completed if the habit is done
-                final isCompleted = isToday && isCompletedToday;
+                
+                // Check completion status for this specific date
+                final dateSpecificHistoryAsync = ref.watch(habitHistoryProvider(dayDate));
+                final isCompleted = dateSpecificHistoryAsync.maybeWhen(
+                  data: (history) => history[currentHabit.id] == true,
+                  orElse: () => false,
+                );
                 final isFutureDay = dayDate.compareTo(today) > 0;
                 
                 return Container(
