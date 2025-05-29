@@ -61,6 +61,8 @@
    
    - Copy `google-services.json` to `android/app/`
    - Copy `GoogleService-Info.plist` to `ios/Runner/`
+   - Copy `firebase.json` to the project root (or update based on `firebase.placeholder.json`)
+   - Copy `.firebaserc` to the project root (or update based on `.firebaserc.placeholder`)
    - Update `lib/firebase_options.dart` with your Firebase configuration
    
    You can use the provided `.placeholder` files as templates for the required format.
