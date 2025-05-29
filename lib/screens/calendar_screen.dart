@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/models/habit.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/providers/habit_provider.dart';
-import 'package:habitly/providers/navigation_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:habitly/widgets/habit_card.dart';

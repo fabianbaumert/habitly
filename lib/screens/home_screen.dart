@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/habit_provider.dart';
-import 'package:habitly/providers/navigation_provider.dart';
 import 'package:habitly/screens/habit_detail_screen.dart';
 import 'package:habitly/screens/habit_form_screen.dart';
 import 'package:habitly/widgets/habit_card.dart';
