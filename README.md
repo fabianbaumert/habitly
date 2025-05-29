@@ -42,3 +42,34 @@
    ```bash
    git clone https://github.com/yourusername/habitly.git
    cd habitly
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Configure Firebase**
+   
+   This project requires Firebase for authentication and data storage. The repository includes placeholder files that you need to replace with your own Firebase configuration:
+   
+   a. Create a new Firebase project at [firebase.google.com](https://firebase.google.com)
+   
+   b. Add Android and iOS apps to your Firebase project with the package name `com.example.habitly` (or your custom package name)
+   
+   c. Download the config files and replace the placeholders:
+   
+   - Copy `google-services.json` to `android/app/`
+   - Copy `GoogleService-Info.plist` to `ios/Runner/`
+   - Update `lib/firebase_options.dart` with your Firebase configuration
+   
+   You can use the provided `.placeholder` files as templates for the required format.
+   
+   d. Enable Firebase Authentication and Firestore in your Firebase project
+
+4. **Run the app**
+   ```bash
+   flutter run
+   ```
+
+---
