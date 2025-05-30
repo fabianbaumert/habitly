@@ -22,7 +22,6 @@
 - **Riverpod** – State management
 - **Hive** – Lightweight local storage
 - **Dio** – HTTP client for feedback
-
 - **Flutter Launcher Icons** / **Splash** – App branding
 
 ---
