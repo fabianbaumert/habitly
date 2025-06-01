@@ -4,6 +4,13 @@
 
 ---
 
+## 🎬 Demo
+
+Watch a demo of the app in action: [YouTube Video](https://www.youtube.com/watch?v=9Bt1FFMwBes)
+
+
+---
+
 ## ✨ Features
 
 - ✅ Create and track custom habits
