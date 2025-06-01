@@ -8,6 +8,7 @@
 
 Watch a demo of the app in action: [YouTube Video](https://www.youtube.com/watch?v=9Bt1FFMwBes)
 [![Habitly App Demo](https://img.youtube.com/vi/9Bt1FFMwBes/0.jpg)](https://www.youtube.com/watch?v=9Bt1FFMwBes)
+
 👆 Click to watch the full demo on YouTube
 
 
