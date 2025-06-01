@@ -15,6 +15,14 @@
 
 ---
 
+## 🎬 Demo
+
+Watch a demo of the app in action:
+
+[![Habitly App Demo](https://img.youtube.com/vi/9Bt1FFMwBes/0.jpg)](https://www.youtube.com/watch?v=9Bt1FFMwBes)
+
+---
+
 ## 🛠️ Tech Stack
 
 - **Flutter** – Cross-platform app development
