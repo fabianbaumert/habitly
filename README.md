@@ -60,7 +60,7 @@
    
    a. Create a new Firebase project at [firebase.google.com](https://firebase.google.com)
    
-   b. Add Android and iOS apps to your Firebase project with the package name `com.example.habitly` (or your custom package name)
+   b. Add Android and iOS apps to your Firebase project with the package name `com.fabianbaumert.habitly` (or your custom package name)
    
    c. Download the config files and replace the placeholders:
    
