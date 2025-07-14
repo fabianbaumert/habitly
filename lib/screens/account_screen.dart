@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:habitly/providers/auth_provider.dart';
 import 'package:habitly/providers/habit_history_provider.dart';
 import 'package:habitly/screens/feedback_screen.dart';
+import 'package:habitly/screens/account_settings_screen.dart';
 
 class AccountScreen extends ConsumerWidget {
   final bool showDrawer;
@@ -57,9 +58,11 @@ class AccountScreen extends ConsumerWidget {
             title: const Text('Account Settings'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
-              // Account settings functionality will be added in future
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Account settings coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccountSettingsScreen(),
+                ),
               );
             },
           ),
