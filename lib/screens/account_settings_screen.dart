@@ -9,8 +9,31 @@ class AccountSettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Account Settings'),
       ),
-      body: const Center(
-        child: Text('Account Settings Screen'),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.delete, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Delete Account',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
