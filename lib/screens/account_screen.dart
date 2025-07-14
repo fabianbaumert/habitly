@@ -7,7 +7,7 @@ import 'package:habitly/screens/account_settings_screen.dart';
 
 class AccountScreen extends ConsumerWidget {
   final bool showDrawer;
-  
+
   const AccountScreen({
     super.key,
     this.showDrawer = true,
@@ -16,7 +16,7 @@ class AccountScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // We don't need to set navigation here as it's handled by the navigation provider
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Account'),
@@ -44,14 +44,14 @@ class AccountScreen extends ConsumerWidget {
             child: Text(
               'Menu',
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
             ),
           ),
           const Divider(),
-          
+
           // Account Settings
           ListTile(
             leading: const Icon(Icons.settings),
@@ -66,7 +66,7 @@ class AccountScreen extends ConsumerWidget {
               );
             },
           ),
-          
+
           // Privacy & Security
           ListTile(
             leading: const Icon(Icons.security),
@@ -79,7 +79,7 @@ class AccountScreen extends ConsumerWidget {
               );
             },
           ),
-          
+
           // Send Feedback option
           ListTile(
             leading: const Icon(Icons.feedback),
@@ -94,7 +94,7 @@ class AccountScreen extends ConsumerWidget {
               );
             },
           ),
-          
+
           // About
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -107,9 +107,9 @@ class AccountScreen extends ConsumerWidget {
               );
             },
           ),
-          
+
           const Divider(),
-          
+
           // Logout option
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
@@ -118,10 +118,10 @@ class AccountScreen extends ConsumerWidget {
               try {
                 // Update the currentUserIdProvider to trigger UI refresh
                 ref.read(currentUserIdProvider.notifier).state = null;
-                
+
                 // Sign out
                 await ref.read(authServiceProvider).signOut();
-                
+
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Successfully logged out')),
